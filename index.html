@@ -26,8 +26,8 @@
               const keys = await caches.keys();
               await Promise.all(keys.filter(k => k.startsWith('lso-recruitment-')).map(k => caches.delete(k)));
             }
-            if (!sessionStorage.getItem('lso-cache-cleaned-v3')) {
-              sessionStorage.setItem('lso-cache-cleaned-v3', '1');
+            if (!sessionStorage.getItem('lso-cache-cleaned-v4')) {
+              sessionStorage.setItem('lso-cache-cleaned-v4', '1');
               location.reload();
               return;
             }
@@ -37,21 +37,34 @@
     })();
   </script>
 
-  <link rel="stylesheet" href="./lso-ui-v3.css?v=20260811-0300" />
+  <link rel="stylesheet" href="./lso-ui-v4.css?v=20260811-0320" />
 </head>
 <body>
   <a class="skip-link" href="#calendarGrid">Skip to calendar</a>
 
   <div class="app-shell">
-    <header class="topbar">
+    <header class="topbar topbar-hero">
+      <div class="hero-backdrop" aria-hidden="true">
+        <span class="hero-staff hero-staff-a"></span>
+        <span class="hero-staff hero-staff-b"></span>
+        <span class="hero-ring hero-ring-a"></span>
+        <span class="hero-ring hero-ring-b"></span>
+        <span class="hero-glow"></span>
+        <span class="hero-spark hero-spark-a"></span>
+        <span class="hero-spark hero-spark-b"></span>
+        <span class="hero-spark hero-spark-c"></span>
+      </div>
+
       <div class="brand-lockup">
-        <div class="logo-frame">
-          <img src="./lso-logo.png" alt="Lasallian Symphony Orchestra logo" />
+        <div class="logo-stage" aria-hidden="true">
+          <div class="logo-frame">
+            <img src="./lso-logo.png" alt="" />
+          </div>
         </div>
         <div class="brand-copy">
-          <p class="brand-overline">Lasallian Symphony Orchestra</p>
+          <p class="brand-overline"><span class="overline-dot"></span>Lasallian Symphony Orchestra</p>
           <h1>Recruitment Interviews</h1>
-          <p class="brand-subtitle">Applicant scheduling portal</p>
+          <p class="brand-subtitle">Applicant scheduling portal <span class="subtitle-separator">•</span> Recruitment Week 2026</p>
         </div>
       </div>
 
@@ -163,7 +176,7 @@
     <span id="toastText"></span>
   </div>
 
-  <script src="./supabase-config.js?v=20260811-0300"></script>
-  <script type="module" src="./lso-app-v3.js?v=20260811-0300"></script>
+  <script src="./supabase-config.js?v=20260811-0320"></script>
+  <script type="module" src="./lso-app-v4.js?v=20260811-0320"></script>
 </body>
 </html>

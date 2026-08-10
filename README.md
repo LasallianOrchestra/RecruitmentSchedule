@@ -1,22 +1,21 @@
-# LSO Recruitment Scheduler — GitHub Pages Fixed UI v3
+# LSO Recruitment Interview Scheduler — Premium UI v4
 
-This build fixes the broken/mismatched GitHub Pages UI by using unique versioned CSS and JavaScript filenames and by unregistering the legacy service worker from older releases.
+GitHub Pages-ready, Supabase-connected recruitment interview scheduler for the Lasallian Symphony Orchestra.
 
-## Upload to GitHub
-Upload every file in this folder directly to the repository root. Do not place them inside another folder.
+## Deployment
+Upload every file in this folder directly to the root of the GitHub Pages repository.
 
-The important files are:
-- `index.html`
-- `lso-ui-v3.css`
-- `lso-app-v3.js`
-- `supabase-config.js`
-- `lso-logo.png`
-- `icon-192.png`
-- `icon-512.png`
-- `supabase-setup.sql`
-- `.nojekyll`
+## UI v4
+- CSS-built concert-hall / orchestral hero background (no decorative background image dependency)
+- 3D LSO logo card treatment with brass-gold edge and depth
+- Premium Lasallian green, ivory, and brass-gold palette
+- Responsive desktop, tablet, and mobile layouts
+- Versioned CSS/JS filenames to avoid stale GitHub Pages cache collisions
 
-## Important after deployment
-Open the GitHub Pages site and hard refresh once (`Ctrl+Shift+R`). The new page also automatically unregisters the old LSO service worker and removes only the previous LSO recruitment caches.
+## Scheduling rules
+- Interviews: 10:00 AM–5:00 PM
+- Duration: 1 hour
+- Position: APPLICANT
+- Supabase Realtime is used for shared live updates
 
-Supabase configuration is already included in `supabase-config.js`.
+Do not expose a Supabase service-role/secret key in browser code. The included frontend uses only the publishable key.
