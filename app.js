@@ -3,7 +3,7 @@ const END_HOUR = 17;
 const POSITION = 'APPLICANT';
 const TABLE = 'recruitment_bookings';
 const VALID_HOURS = Array.from({ length: END_HOUR - START_HOUR }, (_, i) => START_HOUR + i);
-const LOCAL_KEY = 'lsoRecruitmentSupabasePreview_v1';
+const LOCAL_KEY = 'lsoRecruitmentSupabasePreview_v2';
 const PH_TIMEZONE = 'Asia/Manila';
 const $ = (id) => document.getElementById(id);
 
@@ -37,6 +37,8 @@ function findBooking(date,hour){ return bookings.find(b=>b.date===date && Number
 function openHours(date){ return VALID_HOURS.filter(h=>!findBooking(date,h)); }
 function loadLocal(){ try{return JSON.parse(localStorage.getItem(LOCAL_KEY)||'[]')}catch{return[]} }
 function saveLocal(){ localStorage.setItem(LOCAL_KEY,JSON.stringify(bookings)); }
+function initials(name){ return String(name||'?').trim().split(/\s+/).slice(0,2).map(p=>p[0]||'').join('').toUpperCase() || '?'; }
+function weekOpenCount(){ return weekDates().reduce((sum,date)=>sum+openHours(date).length,0); }
 
 function isSupabaseConfigured(){
   const c=window.LSO_SUPABASE_CONFIG;
@@ -81,7 +83,7 @@ async function startDataLayer(){
   }
 
   try{
-    setSyncStatus('','Connecting to Supabase…');
+    setSyncStatus('','Connecting…');
     const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
     const cfg=window.LSO_SUPABASE_CONFIG;
     supabase=createClient(cfg.url,cfg.publishableKey,{
@@ -110,8 +112,8 @@ async function startDataLayer(){
     liveMode=false;
     bookings=loadLocal();
     $('setupBanner').classList.remove('hidden');
-    setSyncStatus('offline','Live sync unavailable');
-    showToast('Supabase live sync could not connect. This device is using preview mode.');
+    setSyncStatus('offline','Sync unavailable');
+    showToast('Live sync could not connect. This device is using preview mode.',true);
     render();
   }
 }
@@ -125,7 +127,7 @@ async function loadBookings(){
     .order('interview_hour',{ascending:true});
   if(error) throw error;
   bookings=(data||[]).map(normalizeRow);
-  setSyncStatus('live','Live sync connected');
+  setSyncStatus('live','Live');
   render();
 }
 
@@ -140,12 +142,12 @@ function subscribeBookings(){
       refreshTimer=setTimeout(()=>{
         loadBookings().catch(error=>{
           console.error('Realtime refresh failed:',error);
-          setSyncStatus('offline','Sync interrupted');
+          setSyncStatus('offline','Reconnecting…');
         });
-      },80);
+      },90);
     })
     .subscribe((status)=>{
-      if(status==='SUBSCRIBED') setSyncStatus('live','Live sync connected');
+      if(status==='SUBSCRIBED') setSyncStatus('live','Live');
       else if(status==='CHANNEL_ERROR' || status==='TIMED_OUT') setSyncStatus('offline','Sync interrupted');
       else if(status==='CLOSED' && navigator.onLine) setSyncStatus('offline','Reconnecting…');
     });
@@ -173,7 +175,6 @@ async function createBooking(data){
     if(error.code==='23505') throw new Error('SLOT_TAKEN');
     throw error;
   }
-
   await loadBookings();
 }
 
@@ -184,7 +185,6 @@ async function deleteBooking(booking){
     render();
     return;
   }
-
   if(booking.ownerUid!==currentUid) throw new Error('NOT_OWNER');
   const { error } = await supabase.from(TABLE).delete().eq('id',booking.id);
   if(error) throw error;
@@ -198,125 +198,282 @@ function initializeSelection(){
   if(!weekDates().includes(selected.date)) selected.date=weekStart;
 }
 
-function render(){ renderWeekRange(); renderDesktopCalendar(); renderMobileCalendar(); renderPanel(); }
+function render(){
+  renderWeekRange();
+  renderDesktopCalendar();
+  renderMobileCalendar();
+  renderPanel();
+}
+
 function renderWeekRange(){
   const d=weekDates();
-  $('weekRange').textContent=`${fmtDate(d[0],{month:'short',day:'numeric'})} – ${fmtDate(d[6],{month:'short',day:'numeric',year:'numeric'})}`;
+  const sameMonth=parseISODate(d[0]).getUTCMonth()===parseISODate(d[6]).getUTCMonth();
+  $('weekRange').textContent=sameMonth
+    ? `${fmtDate(d[0],{month:'long',day:'numeric'})} – ${fmtDate(d[6],{day:'numeric',year:'numeric'})}`
+    : `${fmtDate(d[0],{month:'short',day:'numeric'})} – ${fmtDate(d[6],{month:'short',day:'numeric',year:'numeric'})}`;
+  const open=weekOpenCount();
+  $('availableCount').textContent=open;
+  $('weekCaption').textContent=open===0?'This recruitment week is fully booked.':`${open} of ${VALID_HOURS.length*7} interview slots are currently available.`;
 }
+
 function renderDesktopCalendar(){
-  const grid=$('calendarGrid'); const dates=weekDates(); grid.innerHTML='';
-  const corner=document.createElement('div'); corner.className='cal-cell cal-corner'; corner.innerHTML='<span class="section-kicker">Time</span>'; grid.appendChild(corner);
+  const grid=$('calendarGrid');
+  const dates=weekDates();
+  grid.innerHTML='';
+
+  const corner=document.createElement('div');
+  corner.className='cal-cell cal-corner';
+  corner.innerHTML='<span>Time</span>';
+  grid.appendChild(corner);
+
   dates.forEach(date=>{
-    const el=document.createElement('div'); el.className=`cal-cell cal-day ${isToday(date)?'today':''}`;
-    el.innerHTML=`<span class="weekday">${fmtDate(date,{weekday:'short'})}${isToday(date)?' · Today':''}</span><span class="date">${fmtDate(date,{month:'short',day:'numeric'})}</span>`; grid.appendChild(el);
+    const open=openHours(date).length;
+    const pct=Math.round((open/VALID_HOURS.length)*100);
+    const el=document.createElement('div');
+    el.className=`cal-cell cal-day ${isToday(date)?'today':''}`;
+    el.innerHTML=`
+      <div class="day-top">
+        <div><span class="day-name">${fmtDate(date,{weekday:'short'})}${isToday(date)?' · Today':''}</span><span class="day-date">${fmtDate(date,{month:'short',day:'numeric'})}</span></div>
+        ${isToday(date)?'<span class="today-mark" aria-hidden="true"></span>':''}
+      </div>
+      <div class="day-capacity"><div class="capacity-track"><div class="capacity-fill" style="width:${pct}%"></div></div><span class="capacity-text">${open}/${VALID_HOURS.length} open</span></div>`;
+    grid.appendChild(el);
   });
+
   VALID_HOURS.forEach(hour=>{
-    const time=document.createElement('div'); time.className='cal-cell cal-time'; time.textContent=fmtHour(hour); grid.appendChild(time);
+    const time=document.createElement('div');
+    time.className='cal-cell cal-time';
+    time.textContent=fmtHour(hour);
+    grid.appendChild(time);
     dates.forEach(date=>grid.appendChild(makeDesktopSlot(date,hour)));
   });
 }
+
 function makeDesktopSlot(date,hour){
-  const booking=findBooking(date,hour); const isSelected=selected.date===date&&Number(selected.hour)===hour;
-  const el=document.createElement('button'); el.type='button'; el.className=`cal-cell slot ${booking?'booked':''} ${isSelected?'selected':''}`;
+  const booking=findBooking(date,hour);
+  const isSelected=selected.date===date&&Number(selected.hour)===hour;
+  const el=document.createElement('button');
+  el.type='button';
+  el.className=`cal-cell slot ${booking?'booked':''} ${isSelected?'selected':''}`;
+  el.setAttribute('aria-pressed',isSelected?'true':'false');
   el.setAttribute('aria-label',booking?`${fmtDate(date)} ${fmtHour(hour)} booked by ${booking.applicant}`:`${fmtDate(date)} ${fmtHour(hour)} available`);
-  el.innerHTML=booking?`<span class="slot-content"><span class="booking-name">${esc(booking.applicant)}</span><span class="booking-meta">${POSITION} · ${fmtHour(hour)}–${fmtEnd(hour)}</span></span>`:`<span class="slot-content"><span class="available-label">Available</span></span>`;
-  el.addEventListener('click',()=>selectSlot(date,hour)); return el;
+  el.innerHTML=booking
+    ? `<span class="slot-content"><span class="booking-name-row"><span class="booking-avatar">${esc(initials(booking.applicant))}</span><span class="booking-name">${esc(booking.applicant)}</span></span><span class="booking-meta">Booked · ${fmtHour(hour)}–${fmtEnd(hour)}</span></span>`
+    : `<span class="slot-content available-content"><span class="available-label">Available</span><span class="slot-cta">Book ${fmtHour(hour)}</span></span>`;
+  el.addEventListener('click',()=>selectSlot(date,hour));
+  return el;
 }
+
 function renderMobileCalendar(){
-  const dates=weekDates(); const strip=$('dayStrip'); strip.innerHTML='';
+  const dates=weekDates();
+  const strip=$('dayStrip');
+  strip.innerHTML='';
   dates.forEach(date=>{
-    const btn=document.createElement('button'); btn.type='button'; btn.className=`day-tab ${date===selected.date?'active':''} ${isToday(date)?'today':''}`;
-    btn.setAttribute('role','tab'); btn.setAttribute('aria-selected',date===selected.date?'true':'false');
-    btn.innerHTML=`<span class="dow">${fmtDate(date,{weekday:'short'})}</span><span class="num">${fmtDate(date,{day:'numeric'})}</span>`;
-    btn.addEventListener('click',()=>{ selected.date=date; const first=openHours(date)[0]; if(!findBooking(date,selected.hour)) selected.hour=first??START_HOUR; renderMobileCalendar(); renderPanel(); });
+    const open=openHours(date).length;
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className=`day-tab ${date===selected.date?'active':''} ${isToday(date)?'today':''}`;
+    btn.setAttribute('role','tab');
+    btn.setAttribute('aria-selected',date===selected.date?'true':'false');
+    btn.innerHTML=`<span class="dow">${fmtDate(date,{weekday:'short'})}</span><span class="num">${fmtDate(date,{day:'numeric'})}</span><span class="open">${open} open</span>`;
+    btn.addEventListener('click',()=>{
+      selected.date=date;
+      const first=openHours(date)[0];
+      if(findBooking(date,selected.hour)) selected.hour=first??START_HOUR;
+      renderMobileCalendar();
+      renderDesktopCalendar();
+      renderPanel();
+    });
     strip.appendChild(btn);
   });
-  const slots=$('mobileSlots'); slots.innerHTML='';
+
+  const open=openHours(selected.date).length;
+  $('mobileDaySummary').innerHTML=`<strong>${fmtDate(selected.date,{weekday:'long',month:'long',day:'numeric'})}</strong><span>${open} of ${VALID_HOURS.length} slots available</span>`;
+
+  const slots=$('mobileSlots');
+  slots.innerHTML='';
   VALID_HOURS.forEach(hour=>{
-    const booking=findBooking(selected.date,hour); const active=Number(selected.hour)===hour;
-    const btn=document.createElement('button');btn.type='button';btn.className=`mobile-slot ${booking?'booked':''} ${active?'selected':''}`;
-    btn.innerHTML=`<span><span class="mobile-slot-time">${fmtHour(hour)} – ${fmtEnd(hour)}</span><span class="mobile-slot-status">${booking?'Booked interview':'Available · Tap to select'}</span></span>${booking?`<span class="mobile-slot-name">${esc(booking.applicant)}</span>`:'<span class="available-label">Available</span>'}`;
-    btn.addEventListener('click',()=>selectSlot(selected.date,hour)); slots.appendChild(btn);
+    const booking=findBooking(selected.date,hour);
+    const active=Number(selected.hour)===hour;
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className=`mobile-slot ${booking?'booked':''} ${active?'selected':''}`;
+    btn.innerHTML=`<span><span class="mobile-slot-time">${fmtHour(hour)} – ${fmtEnd(hour)}</span><span class="mobile-slot-status">${booking?'Booked interview':'Tap to select this interview time'}</span></span>${booking?`<span class="mobile-slot-name">${esc(booking.applicant)}</span>`:'<span class="available-pill">Available</span>'}`;
+    btn.addEventListener('click',()=>selectSlot(selected.date,hour));
+    slots.appendChild(btn);
   });
 }
+
 function selectSlot(date,hour){
-  selected={date,hour:Number(hour)}; renderDesktopCalendar(); renderMobileCalendar(); renderPanel();
-  if(window.matchMedia('(max-width: 980px)').matches) $('bookingCard').scrollIntoView({behavior:'smooth',block:'start'});
+  selected={date,hour:Number(hour)};
+  renderDesktopCalendar();
+  renderMobileCalendar();
+  renderPanel();
+  if(window.matchMedia('(max-width: 780px)').matches){
+    setTimeout(()=>$('bookingCard').scrollIntoView({behavior:'smooth',block:'start'}),60);
+  }
 }
 
 function renderPanel(){
-  const body=$('panelBody'); const booking=findBooking(selected.date,selected.hour);
+  const body=$('panelBody');
+  const booking=findBooking(selected.date,selected.hour);
   if(booking){ renderBookingDetail(body,booking); return; }
+
   $('panelTitle').textContent='Book an Applicant';
-  const available=openHours(selected.date); const fullyBooked=available.length===0;
+  const available=openHours(selected.date);
+  const fullyBooked=available.length===0;
+
   body.innerHTML=`
-    <div class="selection-card"><p class="section-kicker">Selected slot</p><div class="selection-date">${fmtDate(selected.date,{weekday:'long',month:'long',day:'numeric'})}</div><div class="selection-time">${fmtHour(selected.hour)} – ${fmtEnd(selected.hour)} · Philippine Time</div></div>
+    <div class="slot-summary">
+      <div class="slot-summary-top">
+        <div><p class="eyebrow">Your selected time</p><div class="selection-date">${fmtDate(selected.date,{weekday:'long',month:'long',day:'numeric'})}</div><div class="selection-time">${fmtHour(selected.hour)} – ${fmtEnd(selected.hour)} · Philippine Time</div></div>
+        <span class="selected-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m6 12 4 4 8-8"/></svg></span>
+      </div>
+    </div>
     <div class="form-alert" id="formAlert"></div>
     <form class="booking-form" id="bookingForm">
-      <div class="field"><label for="applicant">Applicant name *</label><input class="control" id="applicant" maxlength="120" required autocomplete="name" placeholder="Enter applicant name" /></div>
-      <div class="field"><div class="position-row"><label for="position">Position type</label><span class="fixed-tag">Fixed</span></div><input class="control" id="position" value="${POSITION}" readonly /></div>
-      <div class="field"><label for="dateInput">Interview date *</label><select class="control" id="dateInput">${weekDates().map(d=>`<option value="${d}" ${d===selected.date?'selected':''}>${fmtDate(d,{weekday:'short',month:'short',day:'numeric'})}</option>`).join('')}</select></div>
-      <div class="field"><label for="timeInput">Interview time *</label><select class="control" id="timeInput" ${fullyBooked?'disabled':''}>${hourOptions(selected.date,selected.hour)}</select><div class="field-hint">Each applicant receives exactly one hour. The final interview starts at 4:00 PM and ends at 5:00 PM.</div></div>
-      <div class="field"><label for="notes">Notes</label><textarea class="control" id="notes" maxlength="1000" rows="3" placeholder="Optional recruitment notes"></textarea></div>
-      <button class="button button-primary" type="submit" ${fullyBooked?'disabled':''}>${fullyBooked?'No Slots Available':'Confirm Interview'}</button>
+      <div class="field">
+        <label for="applicant">Applicant name <span class="required">*</span></label>
+        <input class="control" id="applicant" maxlength="120" required autocomplete="name" placeholder="Full name" />
+      </div>
+      <div class="field">
+        <span class="field-label">Position type</span>
+        <div class="fixed-row" aria-label="Position type is fixed as applicant">
+          <div class="fixed-row-left"><span class="fixed-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4 21a8 8 0 0 1 16 0"/></svg></span><span class="fixed-copy"><strong>${POSITION}</strong><span>Recruitment interview</span></span></div>
+          <span class="locked-chip">Fixed</span>
+        </div>
+      </div>
+      <div class="field">
+        <label for="notes">Notes <span style="color:var(--muted);font-weight:650">(optional)</span></label>
+        <textarea class="control" id="notes" maxlength="1000" rows="3" placeholder="Add any recruitment notes"></textarea>
+      </div>
+      <button class="button button-primary" type="submit" ${fullyBooked?'disabled':''}>
+        <span>${fullyBooked?'No slots available':'Confirm interview'}</span>
+        ${fullyBooked?'':'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>'}
+      </button>
     </form>
-    <div class="availability-box"><div class="availability-head"><strong>Available times</strong><span>${fmtDate(selected.date,{weekday:'short',month:'short',day:'numeric'})}</span></div><div class="chips">${availabilityChips(selected.date)}</div></div>`;
-  $('dateInput').addEventListener('change',(e)=>{
-    const date=e.target.value; const first=openHours(date)[0]; selected={date,hour:first??START_HOUR}; renderDesktopCalendar();renderMobileCalendar();renderPanel();
-  });
-  $('timeInput')?.addEventListener('change',(e)=>{selected.hour=Number(e.target.value);renderDesktopCalendar();renderMobileCalendar();renderPanel();});
+    <div class="availability-box">
+      <div class="availability-head"><strong>Other times this day</strong><span>${fmtDate(selected.date,{weekday:'short',month:'short',day:'numeric'})}</span></div>
+      <div class="chips">${availabilityChips(selected.date)}</div>
+    </div>`;
+
   $('bookingForm').addEventListener('submit',submitBooking);
   body.querySelectorAll('.time-chip').forEach(btn=>btn.addEventListener('click',()=>selectSlot(selected.date,Number(btn.dataset.hour))));
 }
+
 function renderBookingDetail(body,b){
   $('panelTitle').textContent='Interview Details';
   const canCancel=!liveMode || b.ownerUid===currentUid;
   body.innerHTML=`
-    <div class="selection-card"><p class="section-kicker">Confirmed interview</p><div class="selection-date">${fmtDate(b.date,{weekday:'long',month:'long',day:'numeric'})}</div><div class="selection-time">${fmtHour(b.hour)} – ${fmtEnd(b.hour)} · Philippine Time</div></div>
+    <div class="confirmation-card">
+      <div class="confirmation-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m6 12 4 4 8-8"/></svg></div>
+      <p class="eyebrow">Confirmed interview</p>
+      <h3>${esc(b.applicant)}</h3>
+      <p>${fmtDate(b.date,{weekday:'long',month:'long',day:'numeric'})} · ${fmtHour(b.hour)} – ${fmtEnd(b.hour)}</p>
+    </div>
     <div class="detail-list">
-      <div class="detail-row"><span>Applicant name</span><strong>${esc(b.applicant)}</strong></div>
-      <div class="detail-row"><span>Position type</span><strong>${POSITION}</strong></div>
-      <div class="detail-row"><span>Interview time</span><strong>${fmtHour(b.hour)} – ${fmtEnd(b.hour)}</strong></div>
+      <div class="detail-row"><span>Applicant</span><strong>${esc(b.applicant)}</strong></div>
+      <div class="detail-row"><span>Position</span><strong>${POSITION}</strong></div>
+      <div class="detail-row"><span>Schedule</span><strong>${fmtHour(b.hour)} – ${fmtEnd(b.hour)} · PHT</strong></div>
       <div class="detail-row"><span>Notes</span><p>${esc(b.notes||'No notes added.')}</p></div>
     </div>
-    ${canCancel?`<div class="cancel-wrap"><button class="button button-danger" id="deleteBtn" type="button">Cancel Interview</button></div>`:`<div class="ownership-note">For safety, a live booking can only be cancelled from the browser/device that originally created it.</div>`}`;
+    ${canCancel?`<div class="cancel-wrap"><button class="button button-danger" id="deleteBtn" type="button">Cancel this interview</button></div>`:`<div class="ownership-note">This live booking can only be cancelled from the browser/device that originally created it.</div>`}`;
+
   if(canCancel)$('deleteBtn').addEventListener('click',async()=>{
     if(!confirm('Cancel this interview booking?')) return;
-    try{await deleteBooking(b);showToast('Interview cancelled.');if(!liveMode)render();}
-    catch(error){showToast(error.message==='NOT_OWNER'?'This booking cannot be cancelled from this device.':'Unable to cancel the interview.');}
+    try{
+      await deleteBooking(b);
+      showToast('Interview cancelled.');
+      if(!liveMode)render();
+    }catch(error){
+      showToast(error.message==='NOT_OWNER'?'This booking cannot be cancelled from this device.':'Unable to cancel the interview.',true);
+    }
   });
 }
-function hourOptions(date,current){
-  return VALID_HOURS.map(hour=>{const busy=!!findBooking(date,hour);return `<option value="${hour}" ${hour===Number(current)?'selected':''} ${busy?'disabled':''}>${fmtHour(hour)} – ${fmtEnd(hour)}${busy?' · Booked':''}</option>`;}).join('');
-}
+
 function availabilityChips(date){
-  const hours=openHours(date); if(!hours.length)return '<span class="empty-message">This day is fully booked from 10:00 AM to 5:00 PM.</span>';
-  return hours.map(h=>`<button class="time-chip ${Number(selected.hour)===h?'active':''}" type="button" data-hour="${h}">${fmtHour(h)}</button>`).join('');
+  const hours=openHours(date);
+  if(!hours.length)return '<span class="empty-message">This day is fully booked from 10:00 AM to 5:00 PM.</span>';
+  return hours.map(h=>`<button class="time-chip ${Number(selected.hour)===h?'active':''}" type="button" data-hour="${h}">${fmtHour(h).replace(':00 ',' ')}</button>`).join('');
 }
+
 async function submitBooking(e){
-  e.preventDefault(); const alert=$('formAlert'); alert.classList.remove('show');
-  const applicant=$('applicant').value.trim(); const notes=$('notes').value.trim(); const date=$('dateInput').value; const hour=Number($('timeInput')?.value);
-  if(!applicant){return showFormError('Please enter the applicant name.');}
-  if(!isValidHour(hour)){return showFormError('Please choose a valid one-hour interview between 10:00 AM and 5:00 PM.');}
-  if(findBooking(date,hour)){return showFormError('This interview slot has already been booked. Please select another available time.');}
-  const submit=e.submitter; if(submit){submit.disabled=true;submit.textContent='Booking…';}
+  e.preventDefault();
+  const alert=$('formAlert');
+  alert.classList.remove('show');
+  const applicant=$('applicant').value.trim();
+  const notes=$('notes').value.trim();
+  const date=selected.date;
+  const hour=Number(selected.hour);
+
+  if(!applicant) return showFormError('Please enter the applicant name.');
+  if(!isValidHour(hour)) return showFormError('Please choose a valid interview time between 10:00 AM and 5:00 PM.');
+  if(findBooking(date,hour)) return showFormError('This interview slot has already been booked. Please select another available time.');
+
+  const submit=e.submitter;
+  if(submit){ submit.disabled=true; submit.innerHTML='<span>Confirming…</span>'; }
+
   try{
     await createBooking({applicant,notes,date,hour,position:POSITION,durationMinutes:60});
-    selected={date,hour}; showToast(liveMode?'Interview confirmed and synced live.':'Interview saved on this device.'); if(!liveMode)render();
+    selected={date,hour};
+    showToast(liveMode?'Interview confirmed and synced live.':'Interview saved on this device.');
+    if(!liveMode)render();
   }catch(error){
-    if(error.message==='SLOT_TAKEN'){showFormError('Someone else just booked this time. The calendar has been refreshed—please choose another slot.');showToast('Booking rejected: this slot was taken.');if(liveMode)loadBookings().catch(()=>{});}
-    else{console.error(error);showFormError('The booking could not be saved. Please check your connection and try again.');}
-  }finally{if(submit && document.body.contains(submit)){submit.disabled=false;submit.textContent='Confirm Interview';}}
+    if(error.message==='SLOT_TAKEN'){
+      showFormError('Someone else just booked this time. The calendar has refreshed—please choose another slot.');
+      if(liveMode)loadBookings().catch(()=>{});
+    }else{
+      console.error(error);
+      showFormError('The booking could not be saved. Please check your connection and try again.');
+    }
+  }finally{
+    if(submit && document.body.contains(submit)){
+      submit.disabled=false;
+      submit.innerHTML='<span>Confirm interview</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>';
+    }
+  }
 }
-function showFormError(message){const alert=$('formAlert');if(alert){alert.textContent=message;alert.classList.add('show');}showToast(message);}
-function showToast(message){const t=$('toast');t.textContent=message;t.classList.add('show');clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>t.classList.remove('show'),2800);}
 
-$('prevWeek').addEventListener('click',()=>{weekStart=addDaysISO(weekStart,-7);selected={date:weekStart,hour:START_HOUR};render();});
-$('nextWeek').addEventListener('click',()=>{weekStart=addDaysISO(weekStart,7);selected={date:weekStart,hour:START_HOUR};render();});
-$('thisWeek').addEventListener('click',()=>{const today=todayPHISO();weekStart=getMondayISO(today);selected={date:today,hour:START_HOUR};render();});
+function showFormError(message){
+  const alert=$('formAlert');
+  if(alert){ alert.textContent=message; alert.classList.add('show'); }
+  showToast(message,true);
+}
+
+function showToast(message,isError=false){
+  const t=$('toast');
+  $('toastText').textContent=message;
+  t.classList.toggle('error',isError);
+  t.querySelector('.toast-icon').textContent=isError?'!':'✓';
+  t.classList.add('show');
+  clearTimeout(showToast.timer);
+  showToast.timer=setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+$('prevWeek').addEventListener('click',()=>{
+  weekStart=addDaysISO(weekStart,-7);
+  selected={date:weekStart,hour:START_HOUR};
+  render();
+});
+$('nextWeek').addEventListener('click',()=>{
+  weekStart=addDaysISO(weekStart,7);
+  selected={date:weekStart,hour:START_HOUR};
+  render();
+});
+$('thisWeek').addEventListener('click',()=>{
+  const today=todayPHISO();
+  weekStart=getMondayISO(today);
+  selected={date:today,hour:START_HOUR};
+  render();
+});
 $('printBtn').addEventListener('click',()=>window.print());
-window.addEventListener('online',()=>{if(liveMode){setSyncStatus('','Reconnecting…');loadBookings().then(()=>setSyncStatus('live','Live sync connected')).catch(()=>setSyncStatus('offline','Sync interrupted'));}});
-window.addEventListener('offline',()=>setSyncStatus('offline',liveMode?'Offline — reconnecting':'Device-only preview'));
+window.addEventListener('online',()=>{
+  if(liveMode){
+    setSyncStatus('','Reconnecting…');
+    loadBookings().then(()=>setSyncStatus('live','Live')).catch(()=>setSyncStatus('offline','Sync interrupted'));
+  }
+});
+window.addEventListener('offline',()=>setSyncStatus('offline',liveMode?'Offline':'Device-only preview'));
 if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
 
 initializeSelection();
