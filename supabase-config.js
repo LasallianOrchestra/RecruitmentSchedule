@@ -1,14 +1,13 @@
 /*
-  SUPABASE LIVE SYNC CONFIGURATION
+  LSO RECRUITMENT SCHEDULER — SUPABASE CONFIGURATION
 
-  1. Create a Supabase project.
-  2. Copy the Project URL and Publishable Key from the Supabase dashboard.
-  3. Replace the placeholders below.
+  This browser-safe configuration is connected to the LSO Schedule
+  Supabase project. The publishable key is intentionally safe for a
+  browser frontend when Row Level Security (RLS) is enabled.
 
-  IMPORTANT: Use only the browser-safe Publishable Key (sb_publishable_...) or
-  legacy anon key here. NEVER paste a secret/service_role key into this file.
+  NEVER place a Supabase secret key or service_role key in this file.
 */
 window.LSO_SUPABASE_CONFIG = {
-  url: "YOUR_SUPABASE_PROJECT_URL",
-  publishableKey: "YOUR_SUPABASE_PUBLISHABLE_KEY"
+  url: "https://utebykjbegxzezcyvuum.supabase.co",
+  publishableKey: "sb_publishable_WKARrAmXeZP5aOaNr2o2DQ_2qlbSlJH"
 };
