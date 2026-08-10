@@ -3,35 +3,61 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#062b1a" />
+  <meta name="theme-color" content="#06351f" />
   <meta name="color-scheme" content="light" />
   <meta name="description" content="Lasallian Symphony Orchestra live applicant recruitment interview calendar." />
-  <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="icon" type="image/png" href="icon-192.png" />
   <title>LSO Recruitment | Interview Calendar</title>
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" type="image/png" href="./icon-192.png" />
+
+  <!--
+    GitHub Pages cache repair:
+    Earlier builds used a service worker. This one intentionally disables it so
+    an old cached stylesheet can never be mixed with a newer HTML file.
+  -->
+  <script>
+    (async function cleanupLegacyLSOCache(){
+      try {
+        if ('serviceWorker' in navigator) {
+          const regs = await navigator.serviceWorker.getRegistrations();
+          const scoped = regs.filter(r => (r.scope || '').includes('/RecruitmentSchedule/'));
+          if (scoped.length) {
+            await Promise.all(scoped.map(r => r.unregister()));
+            if ('caches' in window) {
+              const keys = await caches.keys();
+              await Promise.all(keys.filter(k => k.startsWith('lso-recruitment-')).map(k => caches.delete(k)));
+            }
+            if (!sessionStorage.getItem('lso-cache-cleaned-v3')) {
+              sessionStorage.setItem('lso-cache-cleaned-v3', '1');
+              location.reload();
+              return;
+            }
+          }
+        }
+      } catch (_) {}
+    })();
+  </script>
+
+  <link rel="stylesheet" href="./lso-ui-v3.css?v=20260811-0300" />
 </head>
 <body>
   <a class="skip-link" href="#calendarGrid">Skip to calendar</a>
-
-  <div class="ambient ambient-one" aria-hidden="true"></div>
-  <div class="ambient ambient-two" aria-hidden="true"></div>
 
   <div class="app-shell">
     <header class="topbar">
       <div class="brand-lockup">
         <div class="logo-frame">
-          <img src="lso-logo.png" alt="Lasallian Symphony Orchestra logo" />
+          <img src="./lso-logo.png" alt="Lasallian Symphony Orchestra logo" />
         </div>
         <div class="brand-copy">
-          <div class="brand-overline">Lasallian Symphony Orchestra</div>
+          <p class="brand-overline">Lasallian Symphony Orchestra</p>
           <h1>Recruitment Interviews</h1>
+          <p class="brand-subtitle">Applicant scheduling portal</p>
         </div>
       </div>
 
       <div class="topbar-actions">
         <div class="sync-pill" id="syncPill" aria-live="polite" title="Realtime connection status">
-          <span class="sync-rings" aria-hidden="true"><span class="sync-dot"></span></span>
+          <span class="sync-indicator" aria-hidden="true"><span class="sync-dot"></span></span>
           <span id="syncText">Connecting…</span>
         </div>
         <button class="icon-button print-button" id="printBtn" type="button" aria-label="Print calendar" title="Print calendar">
@@ -48,7 +74,7 @@
           <span>This browser is temporarily using device-only preview data.</span>
         </div>
       </div>
-      <a href="SUPABASE_SETUP_GUIDE.html" class="banner-link">Setup guide</a>
+      <span class="banner-label">Preview mode</span>
     </div>
 
     <main class="main-stage">
@@ -102,18 +128,20 @@
           <span><i class="legend-dot available"></i>Available</span>
           <span><i class="legend-dot booked"></i>Booked</span>
           <span><i class="legend-dot selected"></i>Selected</span>
-          <span class="legend-tip">Select a time to continue →</span>
+          <span class="legend-tip">Select a time to continue</span>
         </div>
       </section>
 
       <aside class="booking-panel" id="bookingCard" aria-label="Selected interview booking">
-        <div class="panel-glow" aria-hidden="true"></div>
         <div class="booking-head">
           <div class="booking-head-copy">
             <p class="eyebrow">Selected interview</p>
             <h2 id="panelTitle">Book an Applicant</h2>
           </div>
-          <span class="duration-badge"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>60 min</span>
+          <span class="duration-badge">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            60 min
+          </span>
         </div>
         <div class="booking-body" id="panelBody"></div>
         <div class="panel-footer">
@@ -135,7 +163,7 @@
     <span id="toastText"></span>
   </div>
 
-  <script src="supabase-config.js"></script>
-  <script type="module" src="app.js"></script>
+  <script src="./supabase-config.js?v=20260811-0300"></script>
+  <script type="module" src="./lso-app-v3.js?v=20260811-0300"></script>
 </body>
 </html>
