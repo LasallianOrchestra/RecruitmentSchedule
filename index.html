@@ -5,39 +5,31 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#06351f" />
   <meta name="color-scheme" content="light" />
-  <meta name="description" content="Lasallian Symphony Orchestra live applicant recruitment interview calendar." />
+  <meta name="description" content="Lasallian Symphony Orchestra live applicant recruitment interview calendar for August 24–28, 2026." />
   <title>LSO Recruitment | Interview Calendar</title>
   <link rel="icon" type="image/png" href="./icon-192.png" />
 
-  <!--
-    GitHub Pages cache repair:
-    Earlier builds used a service worker. This one intentionally disables it so
-    an old cached stylesheet can never be mixed with a newer HTML file.
-  -->
+  <!-- v6 intentionally uses unique filenames and no service worker. -->
   <script>
-    (async function cleanupLegacyLSOCache(){
+    (function clearLegacyRecruitmentCaches(){
       try {
         if ('serviceWorker' in navigator) {
-          const regs = await navigator.serviceWorker.getRegistrations();
-          const scoped = regs.filter(r => (r.scope || '').includes('/RecruitmentSchedule/'));
-          if (scoped.length) {
-            await Promise.all(scoped.map(r => r.unregister()));
-            if ('caches' in window) {
-              const keys = await caches.keys();
-              await Promise.all(keys.filter(k => k.startsWith('lso-recruitment-')).map(k => caches.delete(k)));
-            }
-            if (!sessionStorage.getItem('lso-cache-cleaned-v5')) {
-              sessionStorage.setItem('lso-cache-cleaned-v5', '1');
-              location.reload();
-              return;
-            }
-          }
+          navigator.serviceWorker.getRegistrations().then(function(regs){
+            regs.filter(function(r){ return (r.scope || '').includes('/RecruitmentSchedule/'); })
+              .forEach(function(r){ r.unregister(); });
+          });
+        }
+        if ('caches' in window) {
+          caches.keys().then(function(keys){
+            keys.filter(function(k){ return k.indexOf('lso-recruitment-') === 0; })
+              .forEach(function(k){ caches.delete(k); });
+          });
         }
       } catch (_) {}
     })();
   </script>
 
-  <link rel="stylesheet" href="./lso-ui-v5.css?v=20260814-1904" />
+  <link rel="stylesheet" href="./lso-ui-v6.css?v=20260814-1912" />
 </head>
 <body>
   <a class="skip-link" href="#calendarGrid">Skip to calendar</a>
@@ -57,9 +49,7 @@
 
       <div class="brand-lockup">
         <div class="logo-stage" aria-hidden="true">
-          <div class="logo-frame">
-            <img src="./lso-logo.png" alt="" />
-          </div>
+          <div class="logo-frame"><img src="./lso-logo.png" alt="" /></div>
         </div>
         <div class="brand-copy">
           <p class="brand-overline"><span class="overline-dot"></span>Lasallian Symphony Orchestra</p>
@@ -69,9 +59,9 @@
       </div>
 
       <div class="topbar-actions">
-        <div class="sync-pill" id="syncPill" aria-live="polite" title="Realtime connection status">
+        <div class="sync-pill" id="syncPill" aria-live="polite" title="Shared calendar connection status">
           <span class="sync-indicator" aria-hidden="true"><span class="sync-dot"></span></span>
-          <span id="syncText">Connecting…</span>
+          <span id="syncText">Starting…</span>
         </div>
         <button class="icon-button print-button" id="printBtn" type="button" aria-label="Print calendar" title="Print calendar">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8V3h10v5M7 17H5a3 3 0 0 1-3-3v-3a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v3a3 3 0 0 1-3 3h-2M7 14h10v7H7z"/></svg>
@@ -83,11 +73,11 @@
       <div class="setup-banner-copy">
         <span class="setup-icon" aria-hidden="true">!</span>
         <div>
-          <strong>Live sync is unavailable.</strong>
-          <span>This browser is temporarily using device-only preview data.</span>
+          <strong id="setupTitle">Live sync is unavailable.</strong>
+          <span id="setupMessage">Please retry the connection.</span>
         </div>
       </div>
-      <span class="banner-label">Preview mode</span>
+      <button class="today-button" id="retrySyncBtn" type="button">Retry connection</button>
     </div>
 
     <main class="main-stage">
@@ -96,13 +86,13 @@
           <div class="week-heading">
             <p class="eyebrow">Recruitment week</p>
             <div class="week-title-row">
-              <h2 id="weekRange">—</h2>
+              <h2 id="weekRange">August 24–28, 2026</h2>
               <span class="timezone-chip">PHT · UTC+8</span>
             </div>
             <p class="week-caption" id="weekCaption">Choose an available one-hour interview slot.</p>
           </div>
 
-          <div class="official-period" aria-label="Official recruitment period">
+          <div class="official-period" aria-label="Official interview dates">
             <span class="official-period-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24"><path d="M8 2v3M16 2v3M3 9h18M5 4h14a2 2 0 0 1 2 2v14H3V6a2 2 0 0 1 2-2Z"/></svg>
             </span>
@@ -117,7 +107,7 @@
             <span class="fact-chip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4 21a8 8 0 0 1 16 0"/></svg>Applicant</span>
           </div>
           <div class="availability-summary" aria-live="polite">
-            <span class="availability-number" id="availableCount">—</span>
+            <span class="availability-number" id="availableCount">40</span>
             <span class="availability-label">open this week</span>
           </div>
         </div>
@@ -156,7 +146,7 @@
         <div class="booking-body" id="panelBody"></div>
         <div class="panel-footer">
           <span class="shield-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.7 2.8 8 7 10 4.2-2 7-5.3 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></svg></span>
-          <span>Realtime slot protection prevents duplicate bookings.</span>
+          <span>Shared Supabase data + duplicate-slot protection.</span>
         </div>
       </aside>
     </main>
@@ -173,7 +163,27 @@
     <span id="toastText"></span>
   </div>
 
-  <script src="./supabase-config.js?v=20260814-1904"></script>
-  <script type="module" src="./lso-app-v5.js?v=20260814-1904"></script>
+  <!-- Configuration first, official Supabase CDN second, local app last. -->
+  <script src="./supabase-config.js?v=20260814-1912"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
+  <script defer src="./lso-app-v6.js?v=20260814-1912"></script>
+
+  <script>
+    // If the local app does not load at all, do not leave the UI stuck on Connecting forever.
+    setTimeout(function(){
+      if (!window.__LSO_APP_STARTED) {
+        var text = document.getElementById('syncText');
+        var pill = document.getElementById('syncPill');
+        var banner = document.getElementById('setupBanner');
+        var title = document.getElementById('setupTitle');
+        var message = document.getElementById('setupMessage');
+        if (text) text.textContent = 'App file not loaded';
+        if (pill) pill.classList.add('offline');
+        if (title) title.textContent = 'Website files are incomplete.';
+        if (message) message.textContent = 'Make sure lso-app-v6.js and lso-ui-v6.css are uploaded beside index.html.';
+        if (banner) banner.classList.remove('hidden');
+      }
+    }, 12000);
+  </script>
 </body>
 </html>
