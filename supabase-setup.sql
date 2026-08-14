@@ -1,4 +1,4 @@
--- LSO Recruitment Scheduler v6 — FULL SAFE SETUP
+-- LSO Recruitment Scheduler v8 — FULL SAFE SETUP
 -- Works for a new project and is safe to re-run on the existing project.
 -- Existing booking rows are preserved.
 
@@ -14,7 +14,7 @@ create table if not exists public.recruitment_bookings (
   created_at timestamptz not null default now()
 );
 
--- Apply the same safe v6 migration rules.
+-- Apply the same safe current v8 rules.
 alter table public.recruitment_bookings alter column owner_id drop not null;
 alter table public.recruitment_bookings drop constraint if exists recruitment_bookings_interview_hour_check;
 alter table public.recruitment_bookings add constraint recruitment_bookings_interview_hour_check check (interview_hour between 10 and 17);

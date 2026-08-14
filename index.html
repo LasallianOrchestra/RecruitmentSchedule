@@ -9,7 +9,7 @@
   <title>LSO Recruitment | Interview Calendar</title>
   <link rel="icon" type="image/png" href="./icon-192.png" />
 
-  <!-- v6 intentionally uses unique filenames and no service worker. -->
+  <!-- v8 uses unique filenames and no service worker to avoid stale GitHub Pages caches. -->
   <script>
     (function clearLegacyRecruitmentCaches(){
       try {
@@ -29,7 +29,7 @@
     })();
   </script>
 
-  <link rel="stylesheet" href="./lso-ui-v7.css?v=20260814-1925" />
+  <link rel="stylesheet" href="./lso-ui-v8.css?v=20260814-1935" />
 </head>
 <body>
   <a class="skip-link" href="#calendarGrid">Skip to calendar</a>
@@ -164,9 +164,9 @@
   </div>
 
   <!-- Configuration first, official Supabase CDN second, local app last. -->
-  <script src="./supabase-config.js?v=20260814-1925"></script>
+  <script src="./supabase-config.js?v=20260814-1935"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
-  <script defer src="./lso-app-v7.js?v=20260814-1925"></script>
+  <script defer src="./lso-app-v8.js?v=20260814-1935"></script>
 
   <script>
     // If the local app does not load at all, do not leave the UI stuck on Connecting forever.
@@ -180,7 +180,7 @@
         if (text) text.textContent = 'App file not loaded';
         if (pill) pill.classList.add('offline');
         if (title) title.textContent = 'Website files are incomplete.';
-        if (message) message.textContent = 'Make sure lso-app-v7.js and lso-ui-v7.css are uploaded beside index.html.';
+        if (message) message.textContent = 'Make sure lso-app-v8.js and lso-ui-v8.css are uploaded beside index.html.';
         if (banner) banner.classList.remove('hidden');
       }
     }, 12000);
