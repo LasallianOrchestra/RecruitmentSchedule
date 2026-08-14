@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#06351f" />
   <meta name="color-scheme" content="light" />
-  <meta name="description" content="Lasallian Symphony Orchestra live applicant recruitment interview calendar for August 24–28, 2026." />
+  <meta name="description" content="Lasallian Symphony Orchestra live applicant recruitment interview calendar for August 24–29, 2026." />
   <title>LSO Recruitment | Interview Calendar</title>
   <link rel="icon" type="image/png" href="./icon-192.png" />
 
@@ -29,7 +29,7 @@
     })();
   </script>
 
-  <link rel="stylesheet" href="./lso-ui-v6.css?v=20260814-1912" />
+  <link rel="stylesheet" href="./lso-ui-v7.css?v=20260814-1925" />
 </head>
 <body>
   <a class="skip-link" href="#calendarGrid">Skip to calendar</a>
@@ -54,7 +54,7 @@
         <div class="brand-copy">
           <p class="brand-overline"><span class="overline-dot"></span>Lasallian Symphony Orchestra</p>
           <h1>Recruitment Interviews</h1>
-          <p class="brand-subtitle">Applicant scheduling portal <span class="subtitle-separator">•</span> August 24–28, 2026</p>
+          <p class="brand-subtitle">Applicant scheduling portal <span class="subtitle-separator">•</span> August 24–29, 2026</p>
         </div>
       </div>
 
@@ -86,7 +86,7 @@
           <div class="week-heading">
             <p class="eyebrow">Recruitment week</p>
             <div class="week-title-row">
-              <h2 id="weekRange">August 24–28, 2026</h2>
+              <h2 id="weekRange">August 24–29, 2026</h2>
               <span class="timezone-chip">PHT · UTC+8</span>
             </div>
             <p class="week-caption" id="weekCaption">Choose an available one-hour interview slot.</p>
@@ -96,7 +96,7 @@
             <span class="official-period-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24"><path d="M8 2v3M16 2v3M3 9h18M5 4h14a2 2 0 0 1 2 2v14H3V6a2 2 0 0 1 2-2Z"/></svg>
             </span>
-            <span><small>Official interview dates</small><strong>Aug 24–28, 2026</strong></span>
+            <span><small>Official interview dates</small><strong>Aug 24–29, 2026</strong></span>
           </div>
         </div>
 
@@ -107,7 +107,7 @@
             <span class="fact-chip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4 21a8 8 0 0 1 16 0"/></svg>Applicant</span>
           </div>
           <div class="availability-summary" aria-live="polite">
-            <span class="availability-number" id="availableCount">40</span>
+            <span class="availability-number" id="availableCount">48</span>
             <span class="availability-label">open this week</span>
           </div>
         </div>
@@ -164,9 +164,9 @@
   </div>
 
   <!-- Configuration first, official Supabase CDN second, local app last. -->
-  <script src="./supabase-config.js?v=20260814-1912"></script>
+  <script src="./supabase-config.js?v=20260814-1925"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
-  <script defer src="./lso-app-v6.js?v=20260814-1912"></script>
+  <script defer src="./lso-app-v7.js?v=20260814-1925"></script>
 
   <script>
     // If the local app does not load at all, do not leave the UI stuck on Connecting forever.
@@ -180,7 +180,7 @@
         if (text) text.textContent = 'App file not loaded';
         if (pill) pill.classList.add('offline');
         if (title) title.textContent = 'Website files are incomplete.';
-        if (message) message.textContent = 'Make sure lso-app-v6.js and lso-ui-v6.css are uploaded beside index.html.';
+        if (message) message.textContent = 'Make sure lso-app-v7.js and lso-ui-v7.css are uploaded beside index.html.';
         if (banner) banner.classList.remove('hidden');
       }
     }, 12000);

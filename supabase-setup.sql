@@ -36,12 +36,12 @@ drop policy if exists "Authenticated users can cancel own recruitment booking" o
 create policy "Public can view recruitment calendar" on public.recruitment_bookings for select to anon, authenticated using (true);
 create policy "Public fallback can create recruitment booking" on public.recruitment_bookings for insert to anon with check (
   owner_id is null and position='APPLICANT' and duration_minutes=60
-  and interview_date between date '2026-08-24' and date '2026-08-28'
+  and interview_date between date '2026-08-24' and date '2026-08-29'
   and interview_hour between 10 and 17
 );
 create policy "Authenticated users can create recruitment booking" on public.recruitment_bookings for insert to authenticated with check (
   owner_id=(select auth.uid()) and position='APPLICANT' and duration_minutes=60
-  and interview_date between date '2026-08-24' and date '2026-08-28'
+  and interview_date between date '2026-08-24' and date '2026-08-29'
   and interview_hour between 10 and 17
 );
 create policy "Authenticated users can cancel own recruitment booking" on public.recruitment_bookings for delete to authenticated using (owner_id=(select auth.uid()));

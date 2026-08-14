@@ -1,35 +1,32 @@
-# LSO Recruitment Scheduler v6 — Fixed Live Build
+# LSO Recruitment Scheduler v7 — August 24–29, 2026
 
-This build fixes the v5 deployment mismatch that caused the page to stay on **Connecting…** and left the calendar blank.
+GitHub-ready flat deployment package for the Lasallian Symphony Orchestra recruitment interview scheduler.
 
-## What was fixed
+## Official recruitment schedule
 
-- `index.html` now loads **lso-ui-v6.css** and **lso-app-v6.js** (matching files).
-- Calendar renders immediately before any network call.
-- Landing calendar is fixed to **August 24–28, 2026** only.
-- Slots are **10:00 AM–6:00 PM**, one hour each, including **5:00–6:00 PM**.
-- Supabase startup now has a timeout; it can no longer stay on Connecting forever.
-- If Anonymous Auth is unavailable, v6 can use a constrained `anon` RLS fallback after the SQL migration is run.
-- Realtime is used when available, plus a 5-second shared-data refresh fallback.
-- Existing booking rows are not deleted by the migration.
-- No service worker is used, preventing stale GitHub Pages asset mixing.
+- **Dates:** August 24–29, 2026 (Monday–Saturday)
+- **Hours:** 10:00 AM–6:00 PM
+- **Duration:** 1 hour per applicant
+- **Position:** APPLICANT
+- **Total capacity:** 48 interview slots (8 slots × 6 days)
 
-## Required deployment order
+## What changed in v7
 
-1. In Supabase → SQL Editor, run `supabase-upgrade-v6.sql` once.
-2. In GitHub, delete/replace the old website files.
-3. Upload **all files from this folder directly into the repository root**.
-4. Make sure `index.html`, `lso-ui-v6.css`, `lso-app-v6.js`, `supabase-config.js`, and `lso-logo.png` are side-by-side.
-5. Wait for GitHub Pages deployment to finish.
-6. Open the site and do one hard refresh: `Ctrl + Shift + R`.
+- Added **Saturday, August 29, 2026** to the landing-page calendar.
+- Updated all date validation to accept August 24 through August 29.
+- Updated desktop and print calendar grids from five to six day columns.
+- Updated the available-slot counter from 40 to 48 total slots.
+- Updated the Supabase RLS date window to allow bookings on August 29.
+- Uses new versioned files `lso-ui-v7.css` and `lso-app-v7.js` to avoid stale GitHub/browser cache collisions.
+- Existing Supabase booking rows are not deleted by the v7 migration.
 
-## Expected status
+## Deployment
 
-- `Live` = Supabase + anonymous session + realtime connected.
-- `Live · public` = Supabase connected using the constrained public RLS fallback.
-- `Connected · auto refresh` = database is connected; websocket realtime is unavailable, so the app refreshes every 5 seconds.
-- `Connection issue` = the app will show a specific fix instead of remaining stuck on Connecting.
+1. In Supabase SQL Editor, run `supabase-upgrade-v7.sql` once.
+2. Replace the website files in the GitHub Pages repository root with the v7 files.
+3. Keep the existing `supabase-config.js` so the site continues to use the same Supabase project.
+4. Wait for GitHub Pages to redeploy, then hard-refresh once if necessary.
 
-## Data safety
+## Important
 
-`supabase-upgrade-v6.sql` does not contain DELETE, TRUNCATE, DROP TABLE, or any UPDATE of booking rows. Existing bookings remain in Supabase.
+Do not run destructive SQL such as `DROP TABLE`, `TRUNCATE`, or blanket `DELETE` statements against `recruitment_bookings`. The included v7 migration does not contain any of those commands.
