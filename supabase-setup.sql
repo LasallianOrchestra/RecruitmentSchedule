@@ -12,13 +12,21 @@ create table if not exists public.recruitment_bookings (
     check (char_length(notes) <= 1000),
   interview_date date not null,
   interview_hour smallint not null
-    check (interview_hour between 10 and 16),
+    check (interview_hour between 10 and 17),
   duration_minutes smallint not null default 60
     check (duration_minutes = 60),
   owner_id uuid not null default auth.uid()
     references auth.users(id) on delete cascade,
   created_at timestamptz not null default now()
 );
+
+-- Safe schedule upgrade: extends the final starting time from 4 PM to 5 PM.
+-- Existing bookings are preserved; only the hour validation constraint changes.
+alter table public.recruitment_bookings
+  drop constraint if exists recruitment_bookings_interview_hour_check;
+alter table public.recruitment_bookings
+  add constraint recruitment_bookings_interview_hour_check
+  check (interview_hour between 10 and 17);
 
 -- The database itself prevents two people from owning the same date/hour,
 -- even if both press Confirm at virtually the same moment.
@@ -54,7 +62,7 @@ with check (
   owner_id = (select auth.uid())
   and position = 'APPLICANT'
   and duration_minutes = 60
-  and interview_hour between 10 and 16
+  and interview_hour between 10 and 17
 );
 
 create policy "Users can cancel their own booking"
