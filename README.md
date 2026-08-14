@@ -1,4 +1,4 @@
-# LSO Recruitment Scheduler v8 — August 24–29, 2026
+# LSO Recruitment Scheduler v9 — Official Day-by-Day Printing
 
 GitHub-ready flat deployment package for the Lasallian Symphony Orchestra recruitment interview scheduler.
 
@@ -10,33 +10,47 @@ GitHub-ready flat deployment package for the Lasallian Symphony Orchestra recrui
 - **Position:** APPLICANT
 - **Total capacity:** 48 interview slots (8 slots × 6 days)
 
-## What changed in v8
+## What changed in v9
 
-- Added **Saturday, August 29, 2026** to the landing-page calendar.
-- Updated all date validation to accept August 24 through August 29.
-- Updated desktop and print calendar grids from five to six day columns.
-- Updated the available-slot counter from 40 to 48 total slots.
-- Updated the Supabase RLS date window to allow bookings on August 29.
-- Uses new versioned files `lso-ui-v8.css` and `lso-app-v8.js` to avoid stale GitHub/browser cache collisions.
-- Existing Supabase booking rows are not deleted by the v8 migration.
+- Replaced the old direct browser print action with an **official print selector**.
+- The user can choose **August 24, 25, 26, 27, 28, or 29** before printing.
+- Added an optional **All 6 Days** print choice; each recruitment day prints as its own official page.
+- The print selector displays how many applicants are booked on each day.
+- Before opening the print selector, the website refreshes the bookings from Supabase so the printed list is current.
+- Official print table has only two columns:
+  - **Full Name**
+  - **Scheduled Interview**
+- Applicant names and interview times use larger, clearer print typography and organized row spacing.
+- Added the user-provided **LSO official banner** as `lso-print-header.png`.
+- Added the user-provided **LSO contact/social strip** as `lso-print-footer.png`.
+- Official print output is formatted for **A4 portrait** documentation.
+- The v8 applicant typing/realtime fix remains intact.
+- Uses new cache-safe frontend filenames `lso-ui-v9.css` and `lso-app-v9.js`.
 
 ## Deployment
 
-1. In Supabase SQL Editor, run `supabase-upgrade-v8.sql` once.
-2. Replace the website files in the GitHub Pages repository root with the v8 files.
-3. Keep the existing `supabase-config.js` so the site continues to use the same Supabase project.
-4. Wait for GitHub Pages to redeploy, then hard-refresh once if necessary.
+Replace the old frontend files in the GitHub Pages repository root with all files from this v9 package. In particular, make sure these files are uploaded beside `index.html`:
 
-## Important
+- `lso-ui-v9.css`
+- `lso-app-v9.js`
+- `lso-print-header.png`
+- `lso-print-footer.png`
+- `supabase-config.js`
 
-Do not run destructive SQL such as `DROP TABLE`, `TRUNCATE`, or blanket `DELETE` statements against `recruitment_bookings`. The included v8 migration does not contain any of those commands.
+Remove old `lso-ui-v8.css` and `lso-app-v8.js` after the v9 deployment is live.
 
+## Supabase
 
-## v8 typing fix
-- Realtime and 5-second polling updates no longer rebuild the booking form.
-- Applicant name and notes are preserved in a local draft while typing.
-- The side panel only switches when the selected slot itself changes or when connection state changes.
-- No database migration is required when upgrading from v7 to v8. Existing Supabase bookings remain untouched.
+**No new SQL migration is required when upgrading from a working v8 installation to v9.** The print upgrade only changes the website frontend and does not delete, reset, or rewrite existing Supabase bookings.
 
-### Database
-If v7 was already working, **no SQL migration is required** for the v8 typing fix. `supabase-upgrade-v8.sql` is included only as a safe, re-runnable copy of the current database policies/rules.
+`supabase-upgrade-v9.sql` is included only as a safe current copy of the existing database rules if you need to re-apply them later.
+
+## Printing workflow
+
+1. Wait for the website status to show **Live** or **Live · public**.
+2. Click the printer button in the top-right header.
+3. Select the recruitment day to print, or select **All 6 Days**.
+4. Click **Print selected day** / **Print all recruitment days**.
+5. The browser print dialog opens with the official LSO document layout.
+
+For best official output, use **A4**, **Portrait**, **100% scale**, and enable **Background graphics** if the browser provides that option.
