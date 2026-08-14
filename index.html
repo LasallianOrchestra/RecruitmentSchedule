@@ -29,7 +29,7 @@
     })();
   </script>
 
-  <link rel="stylesheet" href="./lso-ui-v9.css?v=20260814-1945" />
+  <link rel="stylesheet" href="./lso-ui-v11.css?v=20260814-2010" />
 </head>
 <body>
   <a class="skip-link" href="#calendarGrid">Skip to calendar</a>
@@ -173,7 +173,7 @@
       <div class="print-day-options" id="printDayOptions" role="radiogroup" aria-label="Choose a recruitment day"></div>
       <div class="print-dialog-note">
         <span aria-hidden="true">i</span>
-        <p>The official printout contains only the applicant <strong>Full Name</strong> and <strong>Scheduled Interview</strong>, with the LSO header and footer.</p>
+        <p>The official printout uses <strong>Folio / long bond paper (8.5 × 13 in)</strong> and contains only the applicant <strong>Full Name</strong> and <strong>Scheduled Interview</strong>, with the full LSO header and footer.</p>
       </div>
       <div class="print-dialog-actions">
         <button class="button print-cancel-button" id="printCancelBtn" type="button">Cancel</button>
@@ -195,7 +195,7 @@
   <!-- Configuration first, official Supabase CDN second, local app last. -->
   <script src="./supabase-config.js?v=20260814-1945"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
-  <script defer src="./lso-app-v9.js?v=20260814-1945"></script>
+  <script defer src="./lso-app-v11.js?v=20260814-2010"></script>
 
   <script>
     // If the local app does not load at all, do not leave the UI stuck on Connecting forever.
@@ -209,7 +209,7 @@
         if (text) text.textContent = 'App file not loaded';
         if (pill) pill.classList.add('offline');
         if (title) title.textContent = 'Website files are incomplete.';
-        if (message) message.textContent = 'Make sure lso-app-v9.js and lso-ui-v9.css are uploaded beside index.html.';
+        if (message) message.textContent = 'Make sure lso-app-v11.js and lso-ui-v11.css are uploaded beside index.html.';
         if (banner) banner.classList.remove('hidden');
       }
     }, 12000);

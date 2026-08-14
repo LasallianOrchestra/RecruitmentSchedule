@@ -1,56 +1,35 @@
-# LSO Recruitment Scheduler v9 — Official Day-by-Day Printing
+# LSO Recruitment Scheduler v11 — Folio Official Printing
 
 GitHub-ready flat deployment package for the Lasallian Symphony Orchestra recruitment interview scheduler.
 
 ## Official recruitment schedule
-
 - **Dates:** August 24–29, 2026 (Monday–Saturday)
 - **Hours:** 10:00 AM–6:00 PM
 - **Duration:** 1 hour per applicant
 - **Position:** APPLICANT
-- **Total capacity:** 48 interview slots (8 slots × 6 days)
+- **Total capacity:** 48 interview slots
 
-## What changed in v9
+## v11 print update
+- Official print size is now **Folio / long bond paper (8.5 × 13 in), portrait**.
+- The complete uploaded LSO header and footer are fitted proportionally across the usable page width.
+- Header and footer use their original aspect ratios, so neither image is cropped or stretched.
+- The footer is kept at the bottom of each official schedule page.
+- The schedule table remains limited to **Full Name** and **Scheduled Interview**.
+- Increased vertical spacing uses the additional Folio page height for a cleaner official-document layout.
+- Day-by-day printing and the **All 6 Days** option remain available.
+- Existing Supabase bookings are not modified.
 
-- Replaced the old direct browser print action with an **official print selector**.
-- The user can choose **August 24, 25, 26, 27, 28, or 29** before printing.
-- Added an optional **All 6 Days** print choice; each recruitment day prints as its own official page.
-- The print selector displays how many applicants are booked on each day.
-- Before opening the print selector, the website refreshes the bookings from Supabase so the printed list is current.
-- Official print table has only two columns:
-  - **Full Name**
-  - **Scheduled Interview**
-- Applicant names and interview times use larger, clearer print typography and organized row spacing.
-- Added the user-provided **LSO official banner** as `lso-print-header.png`.
-- Added the user-provided **LSO contact/social strip** as `lso-print-footer.png`.
-- Official print output is formatted for **A4 portrait** documentation.
-- The v8 applicant typing/realtime fix remains intact.
-- Uses new cache-safe frontend filenames `lso-ui-v9.css` and `lso-app-v9.js`.
-
-## Deployment
-
-Replace the old frontend files in the GitHub Pages repository root with all files from this v9 package. In particular, make sure these files are uploaded beside `index.html`:
-
-- `lso-ui-v9.css`
-- `lso-app-v9.js`
-- `lso-print-header.png`
-- `lso-print-footer.png`
-- `supabase-config.js`
-
-Remove old `lso-ui-v8.css` and `lso-app-v8.js` after the v9 deployment is live.
+## GitHub deployment
+Upload all files from this package directly to the repository root. `index.html`, `lso-ui-v11.css`, `lso-app-v11.js`, the LSO images, and Supabase config must be beside one another. Remove older v10 CSS/JS after v11 is live.
 
 ## Supabase
+No database migration is required for this Folio print-layout change. `supabase-upgrade-v11.sql` is included only as a current recovery copy of the existing database rules. It does not delete existing bookings.
 
-**No new SQL migration is required when upgrading from a working v8 installation to v9.** The print upgrade only changes the website frontend and does not delete, reset, or rewrite existing Supabase bookings.
+## Recommended browser print settings
+- Paper: **Folio / 8.5 × 13 in** (sometimes shown as Long Bond or custom 8.5 × 13)
+- Orientation: **Portrait**
+- Scale: **100%**
+- Margins: **Default/None only if your printer supports it; otherwise keep browser margins compatible with the layout**
+- Background graphics: **On**
 
-`supabase-upgrade-v9.sql` is included only as a safe current copy of the existing database rules if you need to re-apply them later.
-
-## Printing workflow
-
-1. Wait for the website status to show **Live** or **Live · public**.
-2. Click the printer button in the top-right header.
-3. Select the recruitment day to print, or select **All 6 Days**.
-4. Click **Print selected day** / **Print all recruitment days**.
-5. The browser print dialog opens with the official LSO document layout.
-
-For best official output, use **A4**, **Portrait**, **100% scale**, and enable **Background graphics** if the browser provides that option.
+The website CSS already declares the print page as 8.5 × 13 inches. If the browser does not list Folio, choose a custom paper size of **8.5 × 13 in** in the printer dialog.
