@@ -1,23 +1,8 @@
--- LSO Recruitment Scheduler v13 — FULL SAFE SETUP
--- Safe to run on a new or existing project. Existing bookings are preserved.
-
-create table if not exists public.recruitment_bookings (
-  id uuid primary key default gen_random_uuid(),
-  applicant text not null check (char_length(trim(applicant)) between 1 and 120),
-  position text not null default 'APPLICANT' check (position='APPLICANT'),
-  notes text not null default '' check (char_length(notes)<=1000),
-  interview_date date not null,
-  interview_hour smallint not null,
-  duration_minutes smallint not null default 60 check (duration_minutes=60),
-  owner_id uuid default auth.uid() references auth.users(id) on delete cascade,
-  created_at timestamptz not null default now()
-);
-
 -- LSO Recruitment Scheduler v13 — DYNAMIC RECRUITMENT BATCHES
 -- SAFE MIGRATION. Existing applicant names, dates, times, notes, and booking IDs are preserved.
 -- This migration DOES NOT DROP, TRUNCATE, or DELETE public.recruitment_bookings.
 
-
+begin;
 
 -- Administrator membership (safe if v12 was already installed).
 create table if not exists public.lso_admins (
@@ -171,7 +156,7 @@ do $$ begin
   if not exists(select 1 from pg_publication_tables where pubname='supabase_realtime' and schemaname='public' and tablename='recruitment_batches') then alter publication supabase_realtime add table public.recruitment_batches; end if;
 end $$;
 
-
+commit;
 
 -- RESULT:
 -- • Existing Aug 24–29 bookings remain unchanged and are linked to the original batch.

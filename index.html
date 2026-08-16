@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#06351f" />
   <meta name="color-scheme" content="light" />
-  <meta name="description" content="Lasallian Symphony Orchestra live applicant recruitment interview calendar for August 24–29, 2026." />
+  <meta name="description" content="Lasallian Symphony Orchestra live applicant recruitment interview calendar. Recruitment dates are managed by the LSO administration portal." />
   <title>LSO Recruitment | Interview Calendar</title>
   <link rel="icon" type="image/png" href="./icon-192.png" />
 
-  <!-- v9 uses unique filenames and no service worker to avoid stale GitHub Pages caches. -->
+  <!-- v13 uses versioned assets and no service worker to avoid stale GitHub Pages caches. -->
   <script>
     (function clearLegacyRecruitmentCaches(){
       try {
@@ -29,7 +29,7 @@
     })();
   </script>
 
-  <link rel="stylesheet" href="./lso-ui-v11.css?v=20260814-2010" />
+  <link rel="stylesheet" href="./lso-ui-v13.css?v=20260816-2131" />
 </head>
 <body>
   <a class="skip-link" href="#calendarGrid">Skip to calendar</a>
@@ -54,7 +54,7 @@
         <div class="brand-copy">
           <p class="brand-overline"><span class="overline-dot"></span>Lasallian Symphony Orchestra</p>
           <h1>Recruitment Interviews</h1>
-          <p class="brand-subtitle">Applicant scheduling portal <span class="subtitle-separator">•</span> August 24–29, 2026</p>
+          <p class="brand-subtitle">Applicant scheduling portal <span class="subtitle-separator">•</span> <span id="batchHeroRange">Loading active calendar…</span></p>
         </div>
       </div>
 
@@ -63,9 +63,6 @@
           <span class="sync-indicator" aria-hidden="true"><span class="sync-dot"></span></span>
           <span id="syncText">Starting…</span>
         </div>
-        <button class="icon-button print-button" id="printBtn" type="button" aria-label="Print interview schedule" title="Print interview schedule">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8V3h10v5M7 17H5a3 3 0 0 1-3-3v-3a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v3a3 3 0 0 1-3 3h-2M7 14h10v7H7z"/></svg>
-        </button>
       </div>
     </header>
 
@@ -84,9 +81,9 @@
       <section class="schedule-surface" aria-label="Recruitment interview calendar">
         <div class="schedule-toolbar">
           <div class="week-heading">
-            <p class="eyebrow">Recruitment week</p>
+            <p class="eyebrow">Active recruitment calendar</p>
             <div class="week-title-row">
-              <h2 id="weekRange">August 24–29, 2026</h2>
+              <h2 id="weekRange">Loading calendar…</h2>
               <span class="timezone-chip">PHT · UTC+8</span>
             </div>
             <p class="week-caption" id="weekCaption">Choose an available one-hour interview slot.</p>
@@ -96,18 +93,18 @@
             <span class="official-period-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24"><path d="M8 2v3M16 2v3M3 9h18M5 4h14a2 2 0 0 1 2 2v14H3V6a2 2 0 0 1 2-2Z"/></svg>
             </span>
-            <span><small>Official interview dates</small><strong>Aug 24–29, 2026</strong></span>
+            <span><small>Official interview dates</small><strong id="officialPeriodRange">Loading…</strong></span>
           </div>
         </div>
 
         <div class="calendar-subbar">
           <div class="schedule-facts">
-            <span class="fact-chip"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>10:00 AM–6:00 PM</span>
+            <span class="fact-chip" id="scheduleHoursChip"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span id="scheduleHoursLabel">Loading hours…</span></span>
             <span class="fact-chip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v3M16 2v3M3 9h18M5 4h14a2 2 0 0 1 2 2v14H3V6a2 2 0 0 1 2-2Z"/></svg>1 hour each</span>
             <span class="fact-chip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4 21a8 8 0 0 1 16 0"/></svg>Applicant</span>
           </div>
           <div class="availability-summary" aria-live="polite">
-            <span class="availability-number" id="availableCount">48</span>
+            <span class="availability-number" id="availableCount">—</span>
             <span class="availability-label">open this week</span>
           </div>
         </div>
@@ -155,39 +152,11 @@
       <span>Lasallian Symphony Orchestra</span>
       <span class="footer-separator">•</span>
       <span>Recruitment Interview Calendar</span>
+      <span class="footer-separator">•</span>
+      <a class="admin-access-link" href="./admin.html">Admin access</a>
     </footer>
   </div>
-
-
-  <div class="print-modal hidden" id="printModal" role="dialog" aria-modal="true" aria-labelledby="printModalTitle">
-    <button class="print-modal-backdrop" id="printModalBackdrop" type="button" aria-label="Close print options"></button>
-    <div class="print-dialog" role="document">
-      <div class="print-dialog-head">
-        <div>
-          <p class="eyebrow">Official documentation</p>
-          <h2 id="printModalTitle">Print Interview Schedule</h2>
-          <p>Select the recruitment day you want to print.</p>
-        </div>
-        <button class="print-close" id="printCloseBtn" type="button" aria-label="Close print options">×</button>
-      </div>
-      <div class="print-day-options" id="printDayOptions" role="radiogroup" aria-label="Choose a recruitment day"></div>
-      <div class="print-dialog-note">
-        <span aria-hidden="true">i</span>
-        <p>The official printout uses <strong>Folio / long bond paper (8.5 × 13 in)</strong> and contains only the applicant <strong>Full Name</strong> and <strong>Scheduled Interview</strong>, with the full LSO header and footer.</p>
-      </div>
-      <div class="print-dialog-actions">
-        <button class="button print-cancel-button" id="printCancelBtn" type="button">Cancel</button>
-        <button class="button button-primary print-confirm-button" id="printConfirmBtn" type="button">
-          <span>Print selected day</span>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8V3h10v5M7 17H5a3 3 0 0 1-3-3v-3a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v3a3 3 0 0 1-3 3h-2M7 14h10v7H7z"/></svg>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <div class="print-document" id="printDocument" aria-hidden="true"></div>
-
-  <div class="toast" id="toast" role="status" aria-live="polite">
+<div class="toast" id="toast" role="status" aria-live="polite">
     <span class="toast-icon" aria-hidden="true">✓</span>
     <span id="toastText"></span>
   </div>
@@ -195,7 +164,7 @@
   <!-- Configuration first, official Supabase CDN second, local app last. -->
   <script src="./supabase-config.js?v=20260814-1945"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
-  <script defer src="./lso-app-v11.js?v=20260814-2010"></script>
+  <script defer src="./lso-app-v13.js?v=20260816-2131"></script>
 
   <script>
     // If the local app does not load at all, do not leave the UI stuck on Connecting forever.
@@ -209,7 +178,7 @@
         if (text) text.textContent = 'App file not loaded';
         if (pill) pill.classList.add('offline');
         if (title) title.textContent = 'Website files are incomplete.';
-        if (message) message.textContent = 'Make sure lso-app-v11.js and lso-ui-v11.css are uploaded beside index.html.';
+        if (message) message.textContent = 'Make sure lso-app-v13.js and lso-ui-v13.css are uploaded beside index.html.';
         if (banner) banner.classList.remove('hidden');
       }
     }, 12000);
