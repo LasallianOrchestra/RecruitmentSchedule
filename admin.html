@@ -7,8 +7,8 @@
   <meta name="description" content="Lasallian Symphony Orchestra recruitment interview administrator portal." />
   <title>LSO Recruitment Admin</title>
   <link rel="icon" type="image/png" href="./icon-192.png" />
-  <link rel="stylesheet" href="./lso-ui-v17.css?v=20260816-2303-v17" />
-  <link rel="stylesheet" href="./lso-admin-v17.css?v=20260816-2303-v17" />
+  <link rel="stylesheet" href="./lso-ui-v18.css?v=20260816-2318-v18" />
+  <link rel="stylesheet" href="./lso-admin-v18.css?v=20260816-2318-v18" />
 </head>
 <body class="admin-page">
   <div class="admin-shell">
@@ -122,18 +122,37 @@
     <div class="print-dialog" role="document">
       <div class="print-dialog-head"><div><p class="eyebrow">Admin · official documentation</p><h2 id="printModalTitle">Print Interview Schedule</h2><p>Select one day from the selected recruitment batch or print its complete record.</p></div><button class="print-close" id="printCloseBtn" type="button" aria-label="Close print options">×</button></div>
       <div class="print-day-options" id="printDayOptions" role="radiogroup" aria-label="Choose a recruitment day"></div>
-      <div class="print-dialog-note"><span>i</span><p>Formatted for <strong>Folio / long bond paper (8.5 × 13 in)</strong>. Only the selected schedule will be sent to print. The official document contains only <strong>Full Name</strong> and <strong>Scheduled Interview</strong>, using the complete LSO header and footer.</p></div>
+      <section class="print-authorization" aria-labelledby="printAuthorizationTitle">
+        <div class="print-authorization-head">
+          <div><p class="eyebrow">Required signatories</p><h3 id="printAuthorizationTitle">Document Authorization</h3></div>
+          <span class="required-chip">Required</span>
+        </div>
+        <div class="print-authorization-grid">
+          <label class="print-auth-field">
+            <span>Authorized Officer <b>*</b></span>
+            <input id="printAuthorizedOfficer" type="text" autocomplete="name" maxlength="120" placeholder="Enter Membership officer's full name" required />
+            <small>Membership</small>
+          </label>
+          <label class="print-auth-field">
+            <span>Approved By <b>*</b></span>
+            <input id="printApprovedBy" type="text" autocomplete="name" maxlength="120" placeholder="Enter President's full name" required />
+            <small>President</small>
+          </label>
+        </div>
+        <div class="print-auth-error hidden" id="printAuthError" role="alert">Enter both required names before printing.</div>
+      </section>
+      <div class="print-dialog-note"><span>i</span><p>Formatted for <strong>Folio / long bond paper (8.5 × 13 in)</strong>. Only the selected schedule will be sent to print. The official document contains <strong>Full Name</strong>, <strong>Scheduled Interview</strong>, and the required authorization block, using the complete LSO header and footer.</p></div>
       <div class="print-dialog-actions"><button class="button print-cancel-button" id="printCancelBtn" type="button">Cancel</button><button class="button button-primary print-confirm-button" id="printConfirmBtn" type="button"><span>Print selected day</span></button></div>
     </div>
   </div>
   <div class="print-document" id="printDocument" aria-hidden="true"></div>
   <div class="toast" id="adminToast" role="status" aria-live="polite"><span class="toast-icon">✓</span><span id="adminToastText"></span></div>
 
-  <script src="./supabase-config.js?v=20260816-2303-v17"></script>
-  <script src="./lso-native-supabase-v17.js?v=20260816-2303-v17"></script>
-  <script defer src="./lso-admin-v17.js?v=20260816-2303-v17"></script>
+  <script src="./supabase-config.js?v=20260816-2318-v18"></script>
+  <script src="./lso-native-supabase-v18.js?v=20260816-2318-v18"></script>
+  <script defer src="./lso-admin-v18.js?v=20260816-2318-v18"></script>
   <script>
-    // v17 startup watchdog: if the admin application crashes before initializing,
+    // v18 startup watchdog: if the admin application crashes before initializing,
     // show a useful error instead of leaving the button permanently disabled.
     window.addEventListener('load', function () {
       setTimeout(function () {
@@ -144,7 +163,7 @@
           btn.setAttribute('aria-disabled', 'false');
           btn.textContent = 'Retry secure connection';
           if (err) {
-            err.textContent = 'The admin application did not finish starting. Reload the page with Ctrl+Shift+R. If this message remains, verify that lso-admin-v17.js is uploaded beside admin.html.';
+            err.textContent = 'The admin application did not finish starting. Reload the page with Ctrl+Shift+R. If this message remains, verify that lso-admin-v18.js is uploaded beside admin.html.';
             err.classList.remove('hidden');
           }
         }
