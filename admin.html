@@ -7,8 +7,8 @@
   <meta name="description" content="Lasallian Symphony Orchestra recruitment interview administrator portal." />
   <title>LSO Recruitment Admin</title>
   <link rel="icon" type="image/png" href="./icon-192.png" />
-  <link rel="stylesheet" href="./lso-ui-v13.css?v=20260816-2131" />
-  <link rel="stylesheet" href="./lso-admin-v13.css?v=20260816-2131" />
+  <link rel="stylesheet" href="./lso-ui-v15.css?v=20260816-2310" />
+  <link rel="stylesheet" href="./lso-admin-v15.css?v=20260816-2310" />
 </head>
 <body class="admin-page">
   <div class="admin-shell">
@@ -38,7 +38,7 @@
           <label>Email address<input id="adminEmail" type="email" autocomplete="username" required placeholder="admin@example.com" /></label>
           <label>Password<input id="adminPassword" type="password" autocomplete="current-password" required placeholder="Password" /></label>
           <div class="admin-form-error hidden" id="loginError"></div>
-          <button class="admin-primary" type="submit" id="loginBtn">Sign in securely</button>
+          <button class="admin-primary" type="submit" id="loginBtn" disabled aria-disabled="true">Loading secure sign-in…</button>
         </form>
       </section>
 
@@ -122,7 +122,7 @@
     <div class="print-dialog" role="document">
       <div class="print-dialog-head"><div><p class="eyebrow">Admin · official documentation</p><h2 id="printModalTitle">Print Interview Schedule</h2><p>Select one day from the selected recruitment batch or print its complete record.</p></div><button class="print-close" id="printCloseBtn" type="button" aria-label="Close print options">×</button></div>
       <div class="print-day-options" id="printDayOptions" role="radiogroup" aria-label="Choose a recruitment day"></div>
-      <div class="print-dialog-note"><span>i</span><p>Formatted for <strong>Folio / long bond paper (8.5 × 13 in)</strong>. The official document contains only <strong>Full Name</strong> and <strong>Scheduled Interview</strong>, using the complete LSO header and footer.</p></div>
+      <div class="print-dialog-note"><span>i</span><p>Formatted for <strong>Folio / long bond paper (8.5 × 13 in)</strong>. Only the selected schedule will be sent to print. The official document contains only <strong>Full Name</strong> and <strong>Scheduled Interview</strong>, using the complete LSO header and footer.</p></div>
       <div class="print-dialog-actions"><button class="button print-cancel-button" id="printCancelBtn" type="button">Cancel</button><button class="button button-primary print-confirm-button" id="printConfirmBtn" type="button"><span>Print selected day</span></button></div>
     </div>
   </div>
@@ -130,7 +130,6 @@
   <div class="toast" id="adminToast" role="status" aria-live="polite"><span class="toast-icon">✓</span><span id="adminToastText"></span></div>
 
   <script src="./supabase-config.js?v=20260816-2113"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
-  <script defer src="./lso-admin-v13.js?v=20260816-2131"></script>
+  <script defer src="./lso-admin-v15.js?v=20260816-2310"></script>
 </body>
 </html>

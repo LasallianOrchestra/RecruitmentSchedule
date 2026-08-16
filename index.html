@@ -29,7 +29,7 @@
     })();
   </script>
 
-  <link rel="stylesheet" href="./lso-ui-v13.css?v=20260816-2131" />
+  <link rel="stylesheet" href="./lso-ui-v15.css?v=20260816-2310" />
 </head>
 <body>
   <a class="skip-link" href="#calendarGrid">Skip to calendar</a>
@@ -91,7 +91,7 @@
 
           <div class="official-period" aria-label="Official interview dates">
             <span class="official-period-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24"><path d="M8 2v3M16 2v3M3 9h18M5 4h14a2 2 0 0 1 2 2v14H3V6a2 2 0 0 1 2-2Z"/></svg>
+              <svg viewBox="0 0 24 24"><path d="M8 2v3M16 2v3M3 9h18M5 4h14a2 2 0 0 1 2 2v15H3V6a2 2 0 0 1 2-2Z"/></svg>
             </span>
             <span><small>Official interview dates</small><strong id="officialPeriodRange">Loading…</strong></span>
           </div>
@@ -100,7 +100,7 @@
         <div class="calendar-subbar">
           <div class="schedule-facts">
             <span class="fact-chip" id="scheduleHoursChip"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span id="scheduleHoursLabel">Loading hours…</span></span>
-            <span class="fact-chip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v3M16 2v3M3 9h18M5 4h14a2 2 0 0 1 2 2v14H3V6a2 2 0 0 1 2-2Z"/></svg>1 hour each</span>
+            <span class="fact-chip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v3M16 2v3M3 9h18M5 4h14a2 2 0 0 1 2 2v15H3V6a2 2 0 0 1 2-2Z"/></svg>1 hour each</span>
             <span class="fact-chip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4 21a8 8 0 0 1 16 0"/></svg>Applicant</span>
           </div>
           <div class="availability-summary" aria-live="polite">
@@ -164,7 +164,7 @@
   <!-- Configuration first, official Supabase CDN second, local app last. -->
   <script src="./supabase-config.js?v=20260814-1945"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
-  <script defer src="./lso-app-v13.js?v=20260816-2131"></script>
+  <script defer src="./lso-app-v15.js?v=20260816-2310"></script>
 
   <script>
     // If the local app does not load at all, do not leave the UI stuck on Connecting forever.
@@ -178,7 +178,7 @@
         if (text) text.textContent = 'App file not loaded';
         if (pill) pill.classList.add('offline');
         if (title) title.textContent = 'Website files are incomplete.';
-        if (message) message.textContent = 'Make sure lso-app-v13.js and lso-ui-v13.css are uploaded beside index.html.';
+        if (message) message.textContent = 'Make sure lso-app-v15.js and lso-ui-v15.css are uploaded beside index.html.';
         if (banner) banner.classList.remove('hidden');
       }
     }, 12000);
