@@ -18,3 +18,7 @@ Open `admin.html` and sign in. At the top you will see **Applicant Landing Calen
 
 ## 4. No GitHub edit is needed for future batches
 After v13 is installed, future recruitment dates/hours are managed entirely from `admin.html`. You do not need to change JavaScript or redeploy the site just to open the next recruitment batch.
+
+
+## v16 connection fix
+This build no longer downloads the Supabase JavaScript SDK from a CDN. Admin authentication and database operations use the Supabase HTTPS APIs through the included `lso-native-supabase-v16.js` file. This prevents the Admin Sign In screen from remaining stuck on 'Loading secure sign-in…' when a CDN is blocked or slow. No database migration is required when upgrading from v13/v14/v15. Existing bookings and batches are not modified.

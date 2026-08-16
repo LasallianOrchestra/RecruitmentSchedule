@@ -7,8 +7,8 @@
   <meta name="description" content="Lasallian Symphony Orchestra recruitment interview administrator portal." />
   <title>LSO Recruitment Admin</title>
   <link rel="icon" type="image/png" href="./icon-192.png" />
-  <link rel="stylesheet" href="./lso-ui-v15.css?v=20260816-2310" />
-  <link rel="stylesheet" href="./lso-admin-v15.css?v=20260816-2310" />
+  <link rel="stylesheet" href="./lso-ui-v17.css?v=20260816-2303-v17" />
+  <link rel="stylesheet" href="./lso-admin-v17.css?v=20260816-2303-v17" />
 </head>
 <body class="admin-page">
   <div class="admin-shell">
@@ -129,7 +129,27 @@
   <div class="print-document" id="printDocument" aria-hidden="true"></div>
   <div class="toast" id="adminToast" role="status" aria-live="polite"><span class="toast-icon">✓</span><span id="adminToastText"></span></div>
 
-  <script src="./supabase-config.js?v=20260816-2113"></script>
-  <script defer src="./lso-admin-v15.js?v=20260816-2310"></script>
+  <script src="./supabase-config.js?v=20260816-2303-v17"></script>
+  <script src="./lso-native-supabase-v17.js?v=20260816-2303-v17"></script>
+  <script defer src="./lso-admin-v17.js?v=20260816-2303-v17"></script>
+  <script>
+    // v17 startup watchdog: if the admin application crashes before initializing,
+    // show a useful error instead of leaving the button permanently disabled.
+    window.addEventListener('load', function () {
+      setTimeout(function () {
+        var btn = document.getElementById('loginBtn');
+        var err = document.getElementById('loginError');
+        if (btn && btn.disabled && btn.textContent.indexOf('Loading secure sign-in') !== -1) {
+          btn.disabled = false;
+          btn.setAttribute('aria-disabled', 'false');
+          btn.textContent = 'Retry secure connection';
+          if (err) {
+            err.textContent = 'The admin application did not finish starting. Reload the page with Ctrl+Shift+R. If this message remains, verify that lso-admin-v17.js is uploaded beside admin.html.';
+            err.classList.remove('hidden');
+          }
+        }
+      }, 2500);
+    });
+  </script>
 </body>
 </html>
