@@ -7,8 +7,8 @@
   <meta name="description" content="Lasallian Symphony Orchestra recruitment interview administrator portal." />
   <title>LSO Recruitment Admin</title>
   <link rel="icon" type="image/png" href="./icon-192.png" />
-  <link rel="stylesheet" href="./lso-ui-v18.css?v=20260816-2318-v18" />
-  <link rel="stylesheet" href="./lso-admin-v18.css?v=20260816-2318-v18" />
+  <link rel="stylesheet" href="./lso-ui-v18.css?v=20260916-1500-instrument" />
+  <link rel="stylesheet" href="./lso-admin-v18.css?v=20260916-1500-instrument" />
 </head>
 <body class="admin-page">
   <div class="admin-shell">
@@ -82,7 +82,7 @@
             </div>
             <div class="admin-table-wrap">
               <table class="admin-table">
-                <thead><tr><th>Date</th><th>Scheduled interview</th><th>Full name</th><th></th></tr></thead>
+                <thead><tr><th>Date</th><th>Scheduled interview</th><th>Full name</th><th>Instrument</th><th></th></tr></thead>
                 <tbody id="adminBookingRows"></tbody>
               </table>
               <div class="admin-empty hidden" id="adminEmpty">No bookings match this view.</div>
@@ -93,7 +93,7 @@
             <div class="admin-editor-empty" id="editorEmpty">
               <div class="editor-empty-icon">✦</div>
               <h2>Select a booking</h2>
-              <p>Choose an applicant record from the table to edit the name, interview date, time, or notes.</p>
+              <p>Choose an applicant record from the table to edit the name, interview date, time, or instrument.</p>
             </div>
             <div class="admin-editor hidden" id="editorPanel">
               <div class="admin-card-head editor-head"><div><p class="eyebrow">Edit booking</p><h2 id="editorTitle">Applicant</h2></div><span class="admin-id-chip" id="editorSlotLabel"></span></div>
@@ -103,7 +103,8 @@
                   <label>Interview date <span>*</span><select id="editDate" required></select></label>
                   <label>Interview time <span>*</span><select id="editHour" required></select></label>
                 </div>
-                <label>Notes<textarea id="editNotes" maxlength="1000" rows="5" placeholder="Internal/application notes"></textarea></label>
+                <label>Instrument <span>*</span><select id="editInstrument" required></select></label>
+                <div class="admin-edit-other hidden" id="editOtherInstrumentWrap"><label>Other instrument <span>*</span><input id="editOtherInstrument" maxlength="120" placeholder="Specify the instrument being applied for" /><small>Tell us which other instrument the applicant is applying for.</small></label></div>
                 <div class="admin-form-error hidden" id="editError"></div>
                 <div class="admin-editor-actions">
                   <button class="admin-danger" id="deleteBookingBtn" type="button">Delete booking</button>
@@ -141,16 +142,16 @@
         </div>
         <div class="print-auth-error hidden" id="printAuthError" role="alert">Enter both required names before printing.</div>
       </section>
-      <div class="print-dialog-note"><span>i</span><p>Formatted for <strong>Folio / long bond paper (8.5 × 13 in)</strong>. Only the selected schedule will be sent to print. The official document contains <strong>Full Name</strong>, <strong>Scheduled Interview</strong>, and the required authorization block, using the complete LSO header and footer.</p></div>
+      <div class="print-dialog-note"><span>i</span><p>Formatted for <strong>Folio / long bond paper (8.5 × 13 in)</strong>. Only the selected schedule will be sent to print. The official document contains <strong>Full Name</strong>, <strong>Instrument</strong>, <strong>Scheduled Interview</strong>, and the required authorization block, using the complete LSO header and footer.</p></div>
       <div class="print-dialog-actions"><button class="button print-cancel-button" id="printCancelBtn" type="button">Cancel</button><button class="button button-primary print-confirm-button" id="printConfirmBtn" type="button"><span>Print selected day</span></button></div>
     </div>
   </div>
   <div class="print-document" id="printDocument" aria-hidden="true"></div>
   <div class="toast" id="adminToast" role="status" aria-live="polite"><span class="toast-icon">✓</span><span id="adminToastText"></span></div>
 
-  <script src="./supabase-config.js?v=20260816-2318-v18"></script>
-  <script src="./lso-native-supabase-v18.js?v=20260816-2318-v18"></script>
-  <script defer src="./lso-admin-v18.js?v=20260816-2318-v18"></script>
+  <script src="./supabase-config.js?v=20260916-1500-instrument"></script>
+  <script src="./lso-native-supabase-v18.js?v=20260916-1500-instrument"></script>
+  <script defer src="./lso-admin-v18.js?v=20260916-1500-instrument"></script>
   <script>
     // v18 startup watchdog: if the admin application crashes before initializing,
     // show a useful error instead of leaving the button permanently disabled.
