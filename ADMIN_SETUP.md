@@ -1,24 +1,28 @@
-# LSO Recruitment Scheduler v13 — Admin + Calendar Manager Setup
+# LSO Recruitment Scheduler — Admin + Calendar Manager Setup
 
 ## Existing bookings are preserved
-This update does **not** delete the current August 24–29 applicant bookings. The migration adds a batch ID and links those existing bookings to the original recruitment batch.
+The batch and instrument upgrades do **not** delete current applicant bookings. Existing bookings remain stored under their original recruitment batch. Older records without an instrument display as **Not specified**.
 
-## 1. Run the v13 migration
-In **Supabase → SQL Editor**, run `supabase-upgrade-v13-batches.sql` once.
+## 1. Run the database migrations
+In **Supabase → SQL Editor**, run `supabase-upgrade-v13-batches.sql` once if the dynamic batch calendar is not installed yet.
+
+Then run `supabase-upgrade-v19-instruments.sql` once. This adds the required instrument field and preserves existing bookings.
+
+For a brand-new Supabase project, `supabase-setup.sql` includes both the booking schema and the instrument field.
 
 ## 2. Keep your existing admin account
-Your v12 admin authorization remains valid. If you have not created it yet, create an Email/Password user in Supabase Authentication and add its UUID to `public.lso_admins`.
+Your admin authorization remains valid. If you have not created it yet, create an Email/Password user in Supabase Authentication and add its UUID to `public.lso_admins`.
 
 ## 3. Use the Calendar Manager
 Open `admin.html` and sign in. At the top you will see **Applicant Landing Calendar**.
 
 - **Edit active calendar** changes the currently published calendar. It refuses changes that would leave an existing booking outside the new dates/hours.
-- **Create next batch** creates a new recruitment batch. When you click **Publish next batch**, the new batch becomes live on `index.html` immediately.
+- **Create next batch** creates a new recruitment batch. When you click **Publish next batch**, the new recruitment calendar becomes live on `index.html` immediately.
 - Previous batches and their applicant bookings remain stored and can be selected from the **Batch** filter in Admin.
+- The booking table, booking editor, and official Folio printout include the applicant's instrument.
 
 ## 4. No GitHub edit is needed for future batches
-After v13 is installed, future recruitment dates/hours are managed entirely from `admin.html`. You do not need to change JavaScript or redeploy the site just to open the next recruitment batch.
+After the batch migration is installed, future recruitment dates and hours are managed entirely from `admin.html`. You do not need to change JavaScript or redeploy the site just to open the next recruitment batch.
 
-
-## v16 connection fix
-This build no longer downloads the Supabase JavaScript SDK from a CDN. Admin authentication and database operations use the Supabase HTTPS APIs through the included `lso-native-supabase-v16.js` file. This prevents the Admin Sign In screen from remaining stuck on 'Loading secure sign-in…' when a CDN is blocked or slow. No database migration is required when upgrading from v13/v14/v15. Existing bookings and batches are not modified.
+## 5. Applicant instrument selection
+The applicant form requires one of the listed orchestra instruments. Choosing **Other** reveals a required field where the applicant can specify the instrument they are applying for. The value is stored as `Other: [instrument]`.

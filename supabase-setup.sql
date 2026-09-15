@@ -5,6 +5,7 @@ create table if not exists public.recruitment_bookings (
   id uuid primary key default gen_random_uuid(),
   applicant text not null check (char_length(trim(applicant)) between 1 and 120),
   position text not null default 'APPLICANT' check (position='APPLICANT'),
+  instrument text not null default 'Not specified' check (char_length(trim(instrument)) between 1 and 160),
   notes text not null default '' check (char_length(notes)<=1000),
   interview_date date not null,
   interview_hour smallint not null,
@@ -12,6 +13,14 @@ create table if not exists public.recruitment_bookings (
   owner_id uuid default auth.uid() references auth.users(id) on delete cascade,
   created_at timestamptz not null default now()
 );
+
+-- Instrument selection is additive so this full setup also repairs an older table.
+alter table public.recruitment_bookings add column if not exists instrument text;
+update public.recruitment_bookings set instrument='Not specified' where instrument is null or char_length(trim(instrument))=0;
+alter table public.recruitment_bookings alter column instrument set default 'Not specified';
+alter table public.recruitment_bookings alter column instrument set not null;
+alter table public.recruitment_bookings drop constraint if exists recruitment_bookings_instrument_check;
+alter table public.recruitment_bookings add constraint recruitment_bookings_instrument_check check (char_length(trim(instrument)) between 1 and 160);
 
 -- LSO Recruitment Scheduler v13 — DYNAMIC RECRUITMENT BATCHES
 -- SAFE MIGRATION. Existing applicant names, dates, times, notes, and booking IDs are preserved.

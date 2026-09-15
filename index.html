@@ -9,7 +9,7 @@
   <title>LSO Recruitment | Interview Calendar</title>
   <link rel="icon" type="image/png" href="./icon-192.png" />
 
-  <!-- v13 uses versioned assets and no service worker to avoid stale GitHub Pages caches. -->
+  <!-- Active versioned assets are loaded directly; the legacy service worker is not used. -->
   <script>
     (function clearLegacyRecruitmentCaches(){
       try {
@@ -29,7 +29,7 @@
     })();
   </script>
 
-  <link rel="stylesheet" href="./lso-ui-v18.css?v=20260816-2318-v18" />
+  <link rel="stylesheet" href="./lso-ui-v18.css?v=20260916-1500-instrument" />
 </head>
 <body>
   <a class="skip-link" href="#calendarGrid">Skip to calendar</a>
@@ -162,9 +162,9 @@
   </div>
 
   <!-- Configuration first, official Supabase CDN second, local app last. -->
-  <script src="./supabase-config.js?v=20260814-1945"></script>
-  <script src="./lso-native-supabase-v18.js?v=20260816-2318-v18"></script>
-  <script defer src="./lso-app-v18.js?v=20260816-2318-v18"></script>
+  <script src="./supabase-config.js?v=20260916-1500-instrument"></script>
+  <script src="./lso-native-supabase-v18.js?v=20260916-1500-instrument"></script>
+  <script defer src="./lso-app-v18.js?v=20260916-1500-instrument"></script>
 
   <script>
     // If the local app does not load at all, do not leave the UI stuck on Connecting forever.

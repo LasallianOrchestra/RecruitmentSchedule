@@ -3,6 +3,14 @@
 window.__LSO_ADMIN_STARTED=true;
 const BOOKINGS_TABLE='recruitment_bookings',BATCHES_TABLE='recruitment_batches';
 const TIMEOUT=10000,$=id=>document.getElementById(id);
+const OTHER_INSTRUMENT='Other';
+const INSTRUMENT_OPTIONS=[
+  'Piano','Celesta','Organ','Timpani','Snare Drum and Bass Drum','Cymbals',
+  'Triangle, Tambourine, and Gong','Mallet percussion','French Horn','Trumpet',
+  'Trombone','Tuba','Flute and Piccolo','Oboe and Cor Anglais (English Horn)',
+  'Clarinet','Bassoon and Contrabassoon','Violin','Viola','Cello','Double Bass',
+  'Harp',OTHER_INSTRUMENT
+];
 let sb=null,adminUser=null,bookings=[],batches=[],activeBatch=null,viewBatchId=null,selectedId=null,channel=null,printSelection=null,editingBatchId=null;
 function pad(n){return String(n).padStart(2,'0')}
 function parseISODate(s){const [y,m,d]=String(s).split('-').map(Number);return new Date(Date.UTC(y,m-1,d))}
@@ -17,12 +25,16 @@ function fmtHour(h){h=Number(h);return `${((h+11)%12)+1}:00 ${h>=12?'PM':'AM'}`}
 function fmtEnd(h){return fmtHour(Number(h)+1)}
 function fmtRange(b){if(!b)return 'No active calendar';const a=b.start_date,e=b.end_date;if(a===e)return fmtDate(a,{month:'long',day:'numeric',year:'numeric'});const da=parseISODate(a),de=parseISODate(e);if(da.getUTCFullYear()===de.getUTCFullYear()&&da.getUTCMonth()===de.getUTCMonth())return `${fmtDate(a,{month:'long',day:'numeric'})} – ${fmtDate(e,{day:'numeric',year:'numeric'})}`;return `${fmtDate(a,{month:'long',day:'numeric',year:'numeric'})} – ${fmtDate(e,{month:'long',day:'numeric',year:'numeric'})}`}
 function esc(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+function instrumentOptions(selected=''){return `<option value="" disabled ${selected?'':'selected'}>Choose an instrument</option>`+INSTRUMENT_OPTIONS.map(name=>`<option value="${esc(name)}" ${name===selected?'selected':''}>${esc(name)}</option>`).join('')}
+function parseInstrument(value){const raw=String(value||'').trim();if(INSTRUMENT_OPTIONS.includes(raw))return{choice:raw,other:''};if(!raw||raw==='Not specified')return{choice:'',other:''};return{choice:OTHER_INSTRUMENT,other:raw.replace(/^Other:\s*/i,'')}}
+function toggleEditOtherInstrument(){const select=$('editInstrument'),wrap=$('editOtherInstrumentWrap'),input=$('editOtherInstrument'),isOther=select?.value===OTHER_INSTRUMENT;wrap?.classList.toggle('hidden',!isOther);if(input){input.required=isOther;input.disabled=!isOther;input.setAttribute('aria-hidden',String(!isOther))}}
 function timeout(p,ms=TIMEOUT){let t;return Promise.race([p,new Promise((_,r)=>t=setTimeout(()=>r(new Error('Request timed out')),ms))]).finally(()=>clearTimeout(t))}
-function normalizeBooking(r){return{id:r.id,applicant:r.applicant,notes:r.notes||'',date:r.interview_date,hour:Number(r.interview_hour),ownerUid:r.owner_id||null,batchId:r.batch_id||null,createdAt:r.created_at}}
+function normalizeBooking(r){return{id:r.id,applicant:r.applicant,instrument:r.instrument||'Not specified',notes:r.notes||'',date:r.interview_date,hour:Number(r.interview_hour),ownerUid:r.owner_id||null,batchId:r.batch_id||null,createdAt:r.created_at}}
 function normalizeBatch(r){return{id:r.id,batch_name:r.batch_name,start_date:r.start_date,end_date:r.end_date,start_hour:Number(r.start_hour),end_hour:Number(r.end_hour),duration_minutes:Number(r.duration_minutes||60),is_active:!!r.is_active,created_at:r.created_at,updated_at:r.updated_at}}
 function setStatus(kind,text){const p=$('adminSyncPill');p?.classList.remove('live','offline');if(kind)p?.classList.add(kind);if($('adminSyncText'))$('adminSyncText').textContent=text}
 function toast(msg,error=false){const t=$('adminToast');if(!t)return;$('adminToastText').textContent=msg;t.classList.toggle('error',error);t.querySelector('.toast-icon').textContent=error?'!':'✓';t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),3200)}
-function formError(id,msg){const e=$(id);if(e){e.textContent=msg;e.classList.remove('hidden')}}function clearError(id){$(id)?.classList.add('hidden')}
+function formError(id,msg){const e=$(id);if(e){e.textContent=msg;e.classList.remove('hidden')}}
+function clearError(id){$(id)?.classList.add('hidden')}
 function configPresent(){const c=window.LSO_SUPABASE_CONFIG;return !!(c?.url&&c?.publishableKey)}
 function setLoginReady(ready,label){const btn=$('loginBtn');if(!btn)return;btn.disabled=!ready;btn.setAttribute('aria-disabled',String(!ready));btn.textContent=label||(ready?'Sign in securely':'Preparing secure sign-in…')}
 async function ensureClient(){
@@ -51,7 +63,7 @@ async function loadBatches(initial=false){
   const oldActive=activeBatch?.id;batches=(data||[]).map(normalizeBatch);activeBatch=batches.find(b=>b.is_active)||null;if(!viewBatchId||!batches.some(b=>b.id===viewBatchId))viewBatchId=activeBatch?.id||batches[0]?.id||null;
   renderBatchManager();populateBatchFilter();populateDateFilters();if(initial||oldActive!==activeBatch?.id)loadBatchForm(activeBatch,false)
 }
-async function loadBookings(){setStatus('','Syncing…');const {data,error}=await timeout(sb.from(BOOKINGS_TABLE).select('id,applicant,notes,interview_date,interview_hour,owner_id,batch_id,created_at').order('interview_date').order('interview_hour'));if(error)throw error;bookings=(data||[]).map(normalizeBooking);renderAll();setStatus('live','Admin · Live')}
+async function loadBookings(){setStatus('','Syncing…');const {data,error}=await timeout(sb.from(BOOKINGS_TABLE).select('id,applicant,instrument,interview_date,interview_hour,owner_id,batch_id,created_at').order('interview_date').order('interview_hour'));if(error)throw error;bookings=(data||[]).map(normalizeBooking);renderAll();setStatus('live','Admin · Live')}
 let adminPollTimer=null;function subscribe(){if(adminPollTimer)clearInterval(adminPollTimer);adminPollTimer=setInterval(async()=>{if(document.visibilityState!=='visible'||!adminUser)return;try{await loadBatches();await loadBookings()}catch(e){console.warn('[LSO Admin] refresh failed:',e)}},5000);setStatus('live','Admin · Live')}
 
 function populateHourSelects(){const start=$('batchStartHour'),end=$('batchEndHour');start.innerHTML=Array.from({length:23},(_,h)=>`<option value="${h}">${fmtHour(h)}</option>`).join('');end.innerHTML=Array.from({length:23},(_,i)=>i+1).map(h=>`<option value="${h}">${fmtHour(h)}</option>`).join('')}
@@ -67,11 +79,11 @@ function viewBookings(){const b=currentBatch();if(!b)return[];return bookings.fi
 function openCount(){const b=currentBatch();return Math.max(0,totalSlots(b)-viewBookings().length)}
 function filtered(){const q=$('bookingSearch').value.trim().toLowerCase(),day=$('dayFilter').value;return viewBookings().filter(b=>(day==='all'||b.date===day)&&(!q||b.applicant.toLowerCase().includes(q))).sort((a,b)=>a.date.localeCompare(b.date)||a.hour-b.hour)}
 function renderAll(){const b=currentBatch(),vb=viewBookings();$('bookedCount').textContent=vb.length;$('adminOpenCount').textContent=openCount();$('adminDayCount').textContent=batchDays(b);$('adminPeriodText').textContent=b?fmtRange(b):'No batch';renderRows();renderEditor()}
-function renderRows(){const rows=filtered(),body=$('adminBookingRows');body.innerHTML=rows.map(b=>`<tr data-id="${b.id}" class="${b.id===selectedId?'active':''}"><td>${esc(fmtDate(b.date,{weekday:'short',month:'short',day:'numeric'}))}</td><td class="time-cell">${fmtHour(b.hour)} – ${fmtEnd(b.hour)}</td><td class="name-cell">${esc(b.applicant)}</td><td><button type="button" class="row-edit-btn" data-id="${b.id}">Edit</button></td></tr>`).join('');$('adminEmpty').classList.toggle('hidden',rows.length>0);body.querySelectorAll('tr').forEach(tr=>tr.addEventListener('click',()=>selectBooking(tr.dataset.id)));body.querySelectorAll('.row-edit-btn').forEach(btn=>btn.addEventListener('click',e=>{e.stopPropagation();selectBooking(btn.dataset.id)}))}
+function renderRows(){const rows=filtered(),body=$('adminBookingRows');body.innerHTML=rows.map(b=>`<tr data-id="${b.id}" class="${b.id===selectedId?'active':''}"><td>${esc(fmtDate(b.date,{weekday:'short',month:'short',day:'numeric'}))}</td><td class="time-cell">${fmtHour(b.hour)} – ${fmtEnd(b.hour)}</td><td class="name-cell">${esc(b.applicant)}</td><td class="instrument-cell">${esc(b.instrument||'Not specified')}</td><td><button type="button" class="row-edit-btn" data-id="${b.id}">Edit</button></td></tr>`).join('');$('adminEmpty').classList.toggle('hidden',rows.length>0);body.querySelectorAll('tr').forEach(tr=>tr.addEventListener('click',()=>selectBooking(tr.dataset.id)));body.querySelectorAll('.row-edit-btn').forEach(btn=>btn.addEventListener('click',e=>{e.stopPropagation();selectBooking(btn.dataset.id)}))}
 function selectBooking(id){selectedId=id;const b=bookings.find(x=>x.id===id);if(b?.batchId&&b.batchId!==viewBatchId){viewBatchId=b.batchId;populateBatchFilter();populateDateFilters()}renderRows();renderEditor();if(innerWidth<1050)$('editorPanel').scrollIntoView({behavior:'smooth',block:'start'})}
-function renderEditor(){const b=bookings.find(x=>x.id===selectedId);$('editorEmpty').classList.toggle('hidden',!!b);$('editorPanel').classList.toggle('hidden',!b);if(!b)return;const bb=bookingBatch(b);$('editorTitle').textContent=b.applicant;$('editorSlotLabel').textContent=`${fmtDate(b.date,{month:'short',day:'numeric'})} · ${fmtHour(b.hour)}`;$('editApplicant').value=b.applicant;$('editNotes').value=b.notes;$('editDate').innerHTML=batchDates(bb).map(d=>`<option value="${d}">${fmtDate(d,{weekday:'long',month:'long',day:'numeric'})}</option>`).join('');$('editDate').value=b.date;renderTimeOptions(b);clearError('editError')}
+function renderEditor(){const b=bookings.find(x=>x.id===selectedId);$('editorEmpty').classList.toggle('hidden',!!b);$('editorPanel').classList.toggle('hidden',!b);if(!b)return;const bb=bookingBatch(b);$('editorTitle').textContent=b.applicant;$('editorSlotLabel').textContent=`${fmtDate(b.date,{month:'short',day:'numeric'})} · ${fmtHour(b.hour)}`;$('editApplicant').value=b.applicant;const instrument=parseInstrument(b.instrument);$('editInstrument').innerHTML=instrumentOptions(instrument.choice);$('editInstrument').value=instrument.choice;$('editOtherInstrument').value=instrument.other;toggleEditOtherInstrument();$('editDate').innerHTML=batchDates(bb).map(d=>`<option value="${d}">${fmtDate(d,{weekday:'long',month:'long',day:'numeric'})}</option>`).join('');$('editDate').value=b.date;renderTimeOptions(b);clearError('editError')}
 function renderTimeOptions(b){const bb=bookingBatch(b),date=$('editDate').value||b.date,occupied=new Set(bookings.filter(x=>x.date===date&&x.id!==b.id).map(x=>x.hour));$('editHour').innerHTML=batchHours(bb).map(h=>`<option value="${h}" ${occupied.has(h)?'disabled':''}>${fmtHour(h)} – ${fmtEnd(h)}${occupied.has(h)?' · Booked':''}</option>`).join('');if(date===b.date)$('editHour').value=String(b.hour);else{const first=batchHours(bb).find(h=>!occupied.has(h));if(first!=null)$('editHour').value=String(first)}}
-async function saveEdit(e){e.preventDefault();clearError('editError');const b=bookings.find(x=>x.id===selectedId);if(!b)return;const applicant=$('editApplicant').value.trim(),date=$('editDate').value,hour=Number($('editHour').value),notes=$('editNotes').value.trim();if(!applicant)return formError('editError','Full name is required.');const btn=$('saveBookingBtn');btn.disabled=true;btn.textContent='Saving…';try{const {error}=await timeout(sb.from(BOOKINGS_TABLE).update({applicant,notes,interview_date:date,interview_hour:hour}).eq('id',b.id));if(error){if(error.code==='23505')throw new Error('That interview slot is already booked. Choose another time.');throw error}await loadBookings();selectedId=b.id;renderAll();toast('Booking updated successfully.')}catch(e){formError('editError',e.message||'Unable to update booking.');toast('Booking update failed.',true)}finally{btn.disabled=false;btn.textContent='Save changes'}}
+async function saveEdit(e){e.preventDefault();clearError('editError');const b=bookings.find(x=>x.id===selectedId);if(!b)return;const applicant=$('editApplicant').value.trim(),instrumentChoice=$('editInstrument').value,otherInstrument=$('editOtherInstrument').value.trim(),instrument=instrumentChoice===OTHER_INSTRUMENT?`Other: ${otherInstrument}`:instrumentChoice,date=$('editDate').value,hour=Number($('editHour').value);if(!applicant)return formError('editError','Full name is required.');if(!instrumentChoice)return formError('editError','Choose an instrument.');if(instrumentChoice===OTHER_INSTRUMENT&&!otherInstrument)return formError('editError','Specify the other instrument.');const btn=$('saveBookingBtn');btn.disabled=true;btn.textContent='Saving…';try{const {error}=await timeout(sb.from(BOOKINGS_TABLE).update({applicant,instrument,interview_date:date,interview_hour:hour}).eq('id',b.id));if(error){if(error.code==='23505')throw new Error('That interview slot is already booked. Choose another time.');throw error}await loadBookings();selectedId=b.id;renderAll();toast('Booking updated successfully.')}catch(e){formError('editError',e.message||'Unable to update booking.');toast('Booking update failed.',true)}finally{btn.disabled=false;btn.textContent='Save changes'}}
 async function removeBooking(){const b=bookings.find(x=>x.id===selectedId);if(!b)return;if(!confirm(`Delete the booking for ${b.applicant} on ${fmtDate(b.date,{month:'long',day:'numeric'})} at ${fmtHour(b.hour)}?`))return;try{const {error}=await timeout(sb.from(BOOKINGS_TABLE).delete().eq('id',b.id));if(error)throw error;selectedId=null;await loadBookings();toast('Booking deleted.')}catch(e){toast(e.message||'Unable to delete booking.',true)}}
 
 function bookedForDate(date){return viewBookings().filter(b=>b.date===date).slice().sort((a,b)=>a.hour-b.hour||a.applicant.localeCompare(b.applicant))}
@@ -87,8 +99,8 @@ async function openPrint(){try{await loadBookings()}catch(e){toast('Could not re
 function closePrint(){$('printModal').classList.add('hidden');document.body.classList.remove('modal-open');$('printAuthError')?.classList.add('hidden')}
 function buildPrintPage(date,authorization){
  const b=currentBatch(),day=bookedForDate(date),rows=day.length
-  ?day.map(x=>`<tr><td class="print-name">${esc(x.applicant)}</td><td class="print-time">${fmtHour(x.hour)} – ${fmtEnd(x.hour)}</td></tr>`).join('')
-  :'<tr class="print-empty-row"><td colspan="2">No applicants are scheduled for this day.</td></tr>';
+  ?day.map(x=>`<tr><td class="print-name">${esc(x.applicant)}</td><td class="print-instrument">${esc(x.instrument||'Not specified')}</td><td class="print-time">${fmtHour(x.hour)} – ${fmtEnd(x.hour)}</td></tr>`).join('')
+  :'<tr class="print-empty-row"><td colspan="3">No applicants are scheduled for this day.</td></tr>';
  return `<section class="print-sheet">
   <img class="official-header" src="./lso-print-header.png" alt="Lasallian Symphony Orchestra official header">
   <main class="document-body">
@@ -98,7 +110,7 @@ function buildPrintPage(date,authorization){
     <div class="document-date">${fmtDate(date,{weekday:'long',month:'long',day:'numeric',year:'numeric'})}</div>
    </header>
    <table class="schedule-table" aria-label="Interview schedule for ${esc(date)}">
-    <thead><tr><th>Full Name</th><th>Scheduled Interview</th></tr></thead>
+    <thead><tr><th>Full Name</th><th>Instrument</th><th>Scheduled Interview</th></tr></thead>
     <tbody>${rows}</tbody>
    </table>
    <div class="document-spacer"></div>
@@ -128,9 +140,11 @@ function printStyles(){return `
  .schedule-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:11.5pt}
  .schedule-table th{background:#075734!important;color:#fff!important;border:1px solid #075734;padding:.105in .13in;text-align:left;font-size:10.5pt;letter-spacing:.025em}
  .schedule-table td{border:1px solid #aebfb5;padding:.115in .13in;vertical-align:middle;line-height:1.25;background:#fff}
- .schedule-table th:first-child,.schedule-table td:first-child{width:58%}
- .schedule-table th:last-child,.schedule-table td:last-child{width:42%}
+ .schedule-table th:first-child,.schedule-table td:first-child{width:32%}
+ .schedule-table th:nth-child(2),.schedule-table td:nth-child(2){width:44%}
+ .schedule-table th:last-child,.schedule-table td:last-child{width:24%}
  .print-name{font-weight:800;color:#0a2f1d;word-break:break-word}
+ .print-instrument{font-weight:700;color:#1e392b;overflow-wrap:anywhere}
  .print-time{font-weight:750;color:#1e392b;white-space:nowrap}
  .print-empty-row td{text-align:center;color:#66736c;font-style:italic;padding:.26in .12in}
  .document-spacer{flex:1;min-height:.1in}
@@ -157,7 +171,7 @@ async function doPrint(){
 }
 
 function boot(){
- $('adminLoginForm').addEventListener('submit',login);$('logoutBtn').addEventListener('click',logout);$('bookingSearch').addEventListener('input',renderRows);$('batchFilter').addEventListener('change',()=>{viewBatchId=$('batchFilter').value;selectedId=null;populateDateFilters();renderAll()});$('dayFilter').addEventListener('change',renderRows);$('adminRefreshBtn').addEventListener('click',async()=>{try{await loadBatches();await loadBookings()}catch(e){toast(e.message,true)}});$('editDate').addEventListener('change',()=>{const b=bookings.find(x=>x.id===selectedId);if(b)renderTimeOptions(b)});$('adminEditForm').addEventListener('submit',saveEdit);$('deleteBookingBtn').addEventListener('click',removeBooking);
+ $('adminLoginForm').addEventListener('submit',login);$('logoutBtn').addEventListener('click',logout);$('bookingSearch').addEventListener('input',renderRows);$('batchFilter').addEventListener('change',()=>{viewBatchId=$('batchFilter').value;selectedId=null;populateDateFilters();renderAll()});$('dayFilter').addEventListener('change',renderRows);$('adminRefreshBtn').addEventListener('click',async()=>{try{await loadBatches();await loadBookings()}catch(e){toast(e.message,true)}});$('editDate').addEventListener('change',()=>{const b=bookings.find(x=>x.id===selectedId);if(b)renderTimeOptions(b)});$('editInstrument').addEventListener('change',toggleEditOtherInstrument);$('editOtherInstrument').addEventListener('input',toggleEditOtherInstrument);$('adminEditForm').addEventListener('submit',saveEdit);$('deleteBookingBtn').addEventListener('click',removeBooking);
  $('editActiveBatchBtn').addEventListener('click',()=>loadBatchForm(activeBatch,false));$('newBatchBtn').addEventListener('click',()=>loadBatchForm(null,true));$('resetBatchBtn').addEventListener('click',()=>loadBatchForm(editingBatchId?activeBatch:null,!editingBatchId));$('batchForm').addEventListener('submit',saveBatch);['batchStartDate','batchEndDate','batchStartHour','batchEndHour'].forEach(id=>$(id).addEventListener('change',updateBatchPreview));
  $('adminPrintBtn').addEventListener('click',openPrint);$('printModalBackdrop').addEventListener('click',closePrint);$('printCloseBtn').addEventListener('click',closePrint);$('printCancelBtn').addEventListener('click',closePrint);$('printConfirmBtn').addEventListener('click',doPrint);['printAuthorizedOfficer','printApprovedBy'].forEach(id=>$(id).addEventListener('input',updatePrintAuthorizationState));document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('printModal').classList.contains('hidden'))closePrint()});start()
 }
